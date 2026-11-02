@@ -26,6 +26,8 @@ public static class InfrastructureServicesExtensions
         services.AddScoped<IDeviceRepository, DeviceRepository>();
         services.AddScoped<IAttendanceRepository, AttendanceRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
 
         return services;
     }
