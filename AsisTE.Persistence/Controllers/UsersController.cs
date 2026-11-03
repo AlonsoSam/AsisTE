@@ -1,6 +1,7 @@
 using AsisTE.Application.UseCases.Users.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using AsisTE.Application.UseCases.Users.Commands;
 
 namespace AsisTE.Persistence.Controllers;
 
@@ -29,5 +30,12 @@ public class UsersController(IMediator mediator) : ControllerBase
             return NotFound();
 
         return Ok(user);
+    }
+    [HttpPost]
+    public async Task<IActionResult> Create(AddUserCommand command)
+    {
+        var id = await mediator.Send(command);
+
+        return Ok(new { userId = id });
     }
 }
