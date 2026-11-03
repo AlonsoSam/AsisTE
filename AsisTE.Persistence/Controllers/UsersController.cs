@@ -36,6 +36,9 @@ public class UsersController(IMediator mediator) : ControllerBase
     {
         var id = await mediator.Send(command);
 
+        if (id == null)
+            return Conflict("El nombre de usuario ya está registrado");
+
         return Ok(new { userId = id });
     }
     [HttpPut("{id}")]

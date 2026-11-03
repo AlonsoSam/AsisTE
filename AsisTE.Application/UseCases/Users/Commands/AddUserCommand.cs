@@ -4,7 +4,7 @@ using MediatR;
 
 namespace AsisTE.Application.UseCases.Users.Commands;
 
-public class AddUserCommand : IRequest<Guid>
+public class AddUserCommand : IRequest<Guid?>
 {
     public string Username { get; set; } = null!;
     public string PasswordHash { get; set; } = null!;
@@ -13,12 +13,18 @@ public class AddUserCommand : IRequest<Guid>
 
 internal class AddUserCommandHandler(
     IUserRepository userRepository)
-    : IRequestHandler<AddUserCommand, Guid>
+    : IRequestHandler<AddUserCommand, Guid?>
 {
-    public async Task<Guid> Handle(
+    public async Task<Guid?> Handle(
         AddUserCommand request,
         CancellationToken cancellationToken)
     {
+        var existingUser = await userRepository
+            .GetByUsernameAsync(request.Username);
+
+        if (existingUser != null)
+            return null;
+
         var user = new User
         {
             UserId = Guid.NewGuid(),
