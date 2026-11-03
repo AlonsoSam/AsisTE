@@ -64,4 +64,19 @@ public class UsersController(IMediator mediator) : ControllerBase
 
         return Ok();
     }
+    [HttpGet("username/{username}")]
+    public async Task<IActionResult> GetByUsername(string username)
+    {
+        var user = await mediator.Send(
+            new GetUserByUsernameQuery
+            {
+                Username = username
+            }
+        );
+
+        if (user == null)
+            return NotFound();
+
+        return Ok(user);
+    }
 }
