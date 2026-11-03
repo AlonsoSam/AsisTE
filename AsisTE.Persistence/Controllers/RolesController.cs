@@ -1,3 +1,4 @@
+using AsisTE.Application.UseCases.Roles.Commands;
 using AsisTE.Application.UseCases.Roles.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -29,5 +30,13 @@ public class RolesController(IMediator mediator) : ControllerBase
             return NotFound();
 
         return Ok(role);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(AddRoleCommand command)
+    {
+        var id = await mediator.Send(command);
+
+        return Ok(new { roleId = id });
     }
 }
