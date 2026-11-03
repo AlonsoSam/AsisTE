@@ -23,7 +23,10 @@ public class NotificationsController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var notification = await mediator.Send(
-            new GetNotificationByIdQuery { Id = id }
+            new GetNotificationByIdQuery
+            {
+                Id = id
+            }
         );
 
         if (notification == null)
@@ -45,13 +48,29 @@ public class NotificationsController(IMediator mediator) : ControllerBase
         return Ok(notifications);
     }
 
+    [HttpGet("status/{status}")]
+    public async Task<IActionResult> GetByStatus(string status)
+    {
+        var notifications = await mediator.Send(
+            new GetNotificationsByStatusQuery
+            {
+                Status = status
+            }
+        );
+
+        return Ok(notifications);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(
         AddNotificationCommand command)
     {
         var id = await mediator.Send(command);
 
-        return Ok(new { notificationId = id });
+        return Ok(new
+        {
+            notificationId = id
+        });
     }
 
     [HttpPut("{id}/status")]
@@ -62,6 +81,38 @@ public class NotificationsController(IMediator mediator) : ControllerBase
         command.Id = id;
 
         var updated = await mediator.Send(command);
+
+        if (!updated)
+            return NotFound();
+
+        return Ok();
+    }
+
+    [HttpPut("{id}/send")]
+    public async Task<IActionResult> MarkAsSent(Guid id)
+    {
+        var updated = await mediator.Send(
+            new MarkNotificationAsSentCommand
+            {
+                Id = id
+            }
+        );
+
+        if (!updated)
+            return NotFound();
+
+        return Ok();
+    }
+
+    [HttpPut("{id}/reset")]
+    public async Task<IActionResult> Reset(Guid id)
+    {
+        var updated = await mediator.Send(
+            new ResetNotificationCommand
+            {
+                Id = id
+            }
+        );
 
         if (!updated)
             return NotFound();
