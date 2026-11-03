@@ -39,4 +39,15 @@ public class RolesController(IMediator mediator) : ControllerBase
 
         return Ok(new { roleId = id });
     }
+    [HttpPost("assign")]
+    public async Task<IActionResult> AssignRole(
+        AssignRoleCommand command)
+    {
+        var assigned = await mediator.Send(command);
+
+        if (!assigned)
+            return NotFound();
+
+        return Ok();
+    }
 }
