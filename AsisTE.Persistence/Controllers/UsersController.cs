@@ -38,4 +38,18 @@ public class UsersController(IMediator mediator) : ControllerBase
 
         return Ok(new { userId = id });
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateUserCommand command)
+    {
+        command.Id = id;
+
+        var updated = await mediator.Send(command);
+
+        if (!updated)
+            return NotFound();
+
+        return Ok();
+    }
 }
