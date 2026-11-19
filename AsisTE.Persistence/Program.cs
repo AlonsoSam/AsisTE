@@ -1,5 +1,6 @@
 using AsisTE.Application;
 using AsisTE.Infrastructure.Configuration;
+using AsisTE.Persistence.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.MapControllers();
 
