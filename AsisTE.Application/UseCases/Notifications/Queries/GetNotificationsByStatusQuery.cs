@@ -16,15 +16,7 @@ internal class GetNotificationsByStatusQueryHandler(IUnitOfWork unitOfWork)
         GetNotificationsByStatusQuery request,
         CancellationToken cancellationToken)
     {
-        var notifications =
-            await unitOfWork.Notifications.GetAllAsync();
-
-        return notifications
-            .Where(notification =>
-                notification.Status != null &&
-                notification.Status.Equals(
-                    request.Status,
-                    StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        return await unitOfWork.Notifications
+            .GetByStatusAsync(request.Status);
     }
 }

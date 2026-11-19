@@ -28,6 +28,15 @@ public class NotificationRepository(AsisteContext context) : INotificationReposi
             .ToListAsync();
     }
 
+    public async Task<List<Notification>> GetByStatusAsync(string status)
+    {
+        return await context.Notifications
+            .AsNoTracking()
+            .Where(x => x.Status != null &&
+                        x.Status.ToLower() == status.ToLower())
+            .ToListAsync();
+    }
+
     public async Task AddAsync(Notification notification)
     {
         await context.Notifications.AddAsync(notification);

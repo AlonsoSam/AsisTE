@@ -7,6 +7,7 @@ public interface INotificationRepository
     Task<List<Notification>> GetAllAsync();
     Task<Notification?> GetByIdAsync(Guid id);
     Task<List<Notification>> GetByGuardianIdAsync(Guid guardianId);
+    Task<List<Notification>> GetByStatusAsync(string status);
     Task AddAsync(Notification notification);
     Task UpdateAsync(Notification notification);
 }
