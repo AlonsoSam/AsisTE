@@ -15,11 +15,14 @@ internal class DeleteGuardianCommandHandler(IUnitOfWork unitOfWork)
         DeleteGuardianCommand request,
         CancellationToken cancellationToken)
     {
-        var guardian = await unitOfWork.Guardians.GetByIdAsync(request.Id);
+        var guardian =
+            await unitOfWork.Guardians.GetByIdAsync(request.Id);
 
         if (guardian == null)
             throw new KeyNotFoundException("Apoderado no encontrado");
 
         await unitOfWork.Guardians.DeleteAsync(guardian);
+
+        await unitOfWork.SaveChangesAsync();
     }
-}
+}   

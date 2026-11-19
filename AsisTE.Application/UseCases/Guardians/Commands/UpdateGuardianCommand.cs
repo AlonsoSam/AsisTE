@@ -20,7 +20,8 @@ internal class UpdateGuardianCommandHandler(IUnitOfWork unitOfWork)
         UpdateGuardianCommand request,
         CancellationToken cancellationToken)
     {
-        var guardian = await unitOfWork.Guardians.GetByIdAsync(request.Id);
+        var guardian =
+            await unitOfWork.Guardians.GetByIdAsync(request.Id);
 
         if (guardian == null)
             throw new KeyNotFoundException("Apoderado no encontrado");
@@ -32,5 +33,7 @@ internal class UpdateGuardianCommandHandler(IUnitOfWork unitOfWork)
         guardian.Email = request.Email;
 
         await unitOfWork.Guardians.UpdateAsync(guardian);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

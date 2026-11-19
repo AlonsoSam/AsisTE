@@ -23,18 +23,19 @@ public class GuardianRepository(AsisteContext context) : IGuardianRepository
     public async Task AddAsync(Guardian guardian)
     {
         await context.Guardians.AddAsync(guardian);
-        await context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(Guardian guardian)
+    public Task UpdateAsync(Guardian guardian)
     {
         context.Guardians.Update(guardian);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(Guardian guardian)
+    public Task DeleteAsync(Guardian guardian)
     {
         context.Guardians.Remove(guardian);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 }

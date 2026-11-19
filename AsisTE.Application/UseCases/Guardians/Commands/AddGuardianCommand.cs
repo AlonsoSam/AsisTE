@@ -33,6 +33,8 @@ internal class AddGuardianCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Guardians.AddAsync(guardian);
 
+        await unitOfWork.SaveChangesAsync();
+
         return guardian.GuardianId;
     }
 }
