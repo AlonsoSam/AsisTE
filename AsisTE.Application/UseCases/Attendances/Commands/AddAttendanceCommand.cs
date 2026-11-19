@@ -21,6 +21,25 @@ internal class AddAttendanceCommandHandler(IUnitOfWork unitOfWork)
         AddAttendanceCommand request,
         CancellationToken cancellationToken)
     {
+        var student =
+            await unitOfWork.Students.GetByIdAsync(request.StudentId);
+
+        if (student == null)
+            throw new KeyNotFoundException("Estudiante no encontrado");
+
+        if (request.DeviceId.HasValue)
+        {
+            var device =
+                await unitOfWork.Devices.GetByIdAsync(
+                    request.DeviceId.Value
+                );
+
+            if (device == null)
+                throw new KeyNotFoundException(
+                    "Dispositivo no encontrado"
+                );
+        }
+
         var attendance = new Attendance
         {
             AttendanceId = Guid.NewGuid(),
