@@ -32,7 +32,10 @@ internal class UpdateStudentCommandHandler(IUnitOfWork unitOfWork)
         student.Grade = request.Grade;
         student.Section = request.Section;
         student.Active = request.Active;
-
+        
         await unitOfWork.Students.UpdateAsync(student);
+
+        await unitOfWork.SaveChangesAsync();
+        
     }
 }

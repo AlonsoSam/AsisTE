@@ -23,18 +23,19 @@ public class StudentRepository(AsisteContext context) : IStudentRepository
     public async Task AddAsync(Student student)
     {
         await context.Students.AddAsync(student);
-        await context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(Student student)
+    public Task UpdateAsync(Student student)
     {
         context.Students.Update(student);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(Student student)
+    public Task DeleteAsync(Student student)
     {
         context.Students.Remove(student);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 }

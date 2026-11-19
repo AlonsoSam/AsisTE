@@ -21,5 +21,7 @@ internal class DeleteStudentCommandHandler(IUnitOfWork unitOfWork)
             throw new KeyNotFoundException("Estudiante no encontrado");
 
         await unitOfWork.Students.DeleteAsync(student);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

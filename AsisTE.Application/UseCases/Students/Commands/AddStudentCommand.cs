@@ -34,6 +34,8 @@ internal class AddStudentCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Students.AddAsync(student);
 
+        await unitOfWork.SaveChangesAsync();
+
         return student.StudentId;
     }
 }
