@@ -39,4 +39,10 @@ public class RoleRepository(AsisteContext context) : IRoleRepository
     {
         await context.UserRoles.AddAsync(userRole);
     }
+    
+    public async Task<Role?> GetByNameAsync(string roleName)
+    {
+        return await context.Roles
+            .FirstOrDefaultAsync(x => x.RoleName == roleName);
+    }
 }

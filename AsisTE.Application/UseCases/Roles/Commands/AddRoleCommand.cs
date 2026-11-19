@@ -16,6 +16,14 @@ internal class AddRoleCommandHandler(IUnitOfWork unitOfWork)
         AddRoleCommand request,
         CancellationToken cancellationToken)
     {
+        var existingRole =
+            await unitOfWork.Roles.GetByNameAsync(request.RoleName);
+
+        if (existingRole != null)
+            throw new InvalidOperationException(
+                "El nombre del rol ya está registrado"
+            );
+
         var role = new Role
         {
             RoleId = Guid.NewGuid(),
