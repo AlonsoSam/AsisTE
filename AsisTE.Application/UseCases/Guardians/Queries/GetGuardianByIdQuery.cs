@@ -1,21 +1,26 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Guardians.Queries;
 
-public class GetGuardianByIdQuery : IRequest<Guardian?>
+public class GetGuardianByIdQuery : IRequest<Guardian>
 {
     public Guid Id { get; set; }
 }
 
-internal class GetGuardianByIdQueryHandler(IGuardianRepository guardianRepository)
-    : IRequestHandler<GetGuardianByIdQuery, Guardian?>
+internal class GetGuardianByIdQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetGuardianByIdQuery, Guardian>
 {
-    public async Task<Guardian?> Handle(
+    public async Task<Guardian> Handle(
         GetGuardianByIdQuery request,
         CancellationToken cancellationToken)
     {
-        return await guardianRepository.GetByIdAsync(request.Id);
+        var guardian = await unitOfWork.Guardians.GetByIdAsync(request.Id);
+
+        if (guardian == null)
+            throw new KeyNotFoundException("Apoderado no encontrado");
+
+        return guardian;
     }
 }

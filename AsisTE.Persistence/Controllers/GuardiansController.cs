@@ -13,6 +13,7 @@ public class GuardiansController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var guardians = await mediator.Send(new GetGuardiansQuery());
+
         return Ok(guardians);
     }
 
@@ -20,11 +21,11 @@ public class GuardiansController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var guardian = await mediator.Send(
-            new GetGuardianByIdQuery { Id = id }
+            new GetGuardianByIdQuery
+            {
+                Id = id
+            }
         );
-
-        if (guardian == null)
-            return NotFound();
 
         return Ok(guardian);
     }
@@ -33,7 +34,11 @@ public class GuardiansController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Create(AddGuardianCommand command)
     {
         var id = await mediator.Send(command);
-        return Ok(new { guardianId = id });
+
+        return Ok(new
+        {
+            guardianId = id
+        });
     }
 
     [HttpPut("{id}")]
@@ -43,10 +48,7 @@ public class GuardiansController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
 
-        var updated = await mediator.Send(command);
-
-        if (!updated)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }
@@ -54,12 +56,12 @@ public class GuardiansController(IMediator mediator) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await mediator.Send(
-            new DeleteGuardianCommand { Id = id }
+        await mediator.Send(
+            new DeleteGuardianCommand
+            {
+                Id = id
+            }
         );
-
-        if (!deleted)
-            return NotFound();
 
         return NoContent();
     }

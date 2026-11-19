@@ -1,9 +1,9 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Guardians.Commands;
 
-public class UpdateGuardianCommand : IRequest<bool>
+public class UpdateGuardianCommand : IRequest
 {
     public Guid Id { get; set; }
     public string? Dni { get; set; }
@@ -13,17 +13,17 @@ public class UpdateGuardianCommand : IRequest<bool>
     public string? Email { get; set; }
 }
 
-internal class UpdateGuardianCommandHandler(IGuardianRepository guardianRepository)
-    : IRequestHandler<UpdateGuardianCommand, bool>
+internal class UpdateGuardianCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<UpdateGuardianCommand>
 {
-    public async Task<bool> Handle(
+    public async Task Handle(
         UpdateGuardianCommand request,
         CancellationToken cancellationToken)
     {
-        var guardian = await guardianRepository.GetByIdAsync(request.Id);
+        var guardian = await unitOfWork.Guardians.GetByIdAsync(request.Id);
 
         if (guardian == null)
-            return false;
+            throw new KeyNotFoundException("Apoderado no encontrado");
 
         guardian.Dni = request.Dni;
         guardian.FirstName = request.FirstName;
@@ -31,8 +31,6 @@ internal class UpdateGuardianCommandHandler(IGuardianRepository guardianReposito
         guardian.Phone = request.Phone;
         guardian.Email = request.Email;
 
-        await guardianRepository.UpdateAsync(guardian);
-
-        return true;
+        await unitOfWork.Guardians.UpdateAsync(guardian);
     }
 }

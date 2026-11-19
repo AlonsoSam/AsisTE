@@ -1,27 +1,25 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Guardians.Commands;
 
-public class DeleteGuardianCommand : IRequest<bool>
+public class DeleteGuardianCommand : IRequest
 {
     public Guid Id { get; set; }
 }
 
-internal class DeleteGuardianCommandHandler(IGuardianRepository guardianRepository)
-    : IRequestHandler<DeleteGuardianCommand, bool>
+internal class DeleteGuardianCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<DeleteGuardianCommand>
 {
-    public async Task<bool> Handle(
+    public async Task Handle(
         DeleteGuardianCommand request,
         CancellationToken cancellationToken)
     {
-        var guardian = await guardianRepository.GetByIdAsync(request.Id);
+        var guardian = await unitOfWork.Guardians.GetByIdAsync(request.Id);
 
         if (guardian == null)
-            return false;
+            throw new KeyNotFoundException("Apoderado no encontrado");
 
-        await guardianRepository.DeleteAsync(guardian);
-
-        return true;
+        await unitOfWork.Guardians.DeleteAsync(guardian);
     }
 }
