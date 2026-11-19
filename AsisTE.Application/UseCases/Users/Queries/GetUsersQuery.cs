@@ -1,21 +1,30 @@
-using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Application.DTOs.Responses;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Users.Queries;
 
-public class GetUsersQuery : IRequest<List<User>>
+public class GetUsersQuery : IRequest<List<UserResponseDto>>
 {
 }
 
-internal class GetUsersQueryHandler(
-    IUserRepository userRepository)
-    : IRequestHandler<GetUsersQuery, List<User>>
+internal class GetUsersQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetUsersQuery, List<UserResponseDto>>
 {
-    public async Task<List<User>> Handle(
+    public async Task<List<UserResponseDto>> Handle(
         GetUsersQuery request,
         CancellationToken cancellationToken)
     {
-        return await userRepository.GetAllAsync();
+        var users = await unitOfWork.Users.GetAllAsync();
+
+        return users
+            .Select(user => new UserResponseDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                CreatedAt = user.CreatedAt
+            })
+            .ToList();
     }
 }

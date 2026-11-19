@@ -1,22 +1,33 @@
-using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Application.DTOs.Responses;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Users.Queries;
 
-public class GetUserByUsernameQuery : IRequest<User?>
+public class GetUserByUsernameQuery : IRequest<UserResponseDto>
 {
     public string Username { get; set; } = null!;
 }
 
-internal class GetUserByUsernameQueryHandler(
-    IUserRepository userRepository)
-    : IRequestHandler<GetUserByUsernameQuery, User?>
+internal class GetUserByUsernameQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetUserByUsernameQuery, UserResponseDto>
 {
-    public async Task<User?> Handle(
+    public async Task<UserResponseDto> Handle(
         GetUserByUsernameQuery request,
         CancellationToken cancellationToken)
     {
-        return await userRepository.GetByUsernameAsync(request.Username);
+        var user =
+            await unitOfWork.Users.GetByUsernameAsync(request.Username);
+
+        if (user == null)
+            throw new KeyNotFoundException("Usuario no encontrado");
+
+        return new UserResponseDto
+        {
+            UserId = user.UserId,
+            Username = user.Username,
+            Email = user.Email,
+            CreatedAt = user.CreatedAt
+        };
     }
 }

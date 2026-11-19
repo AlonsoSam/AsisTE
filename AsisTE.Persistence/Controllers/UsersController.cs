@@ -1,7 +1,7 @@
+using AsisTE.Application.UseCases.Users.Commands;
 using AsisTE.Application.UseCases.Users.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using AsisTE.Application.UseCases.Users.Commands;
 
 namespace AsisTE.Persistence.Controllers;
 
@@ -23,24 +23,26 @@ public class UsersController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var user = await mediator.Send(
-            new GetUserByIdQuery { Id = id }
+            new GetUserByIdQuery
+            {
+                Id = id
+            }
         );
-
-        if (user == null)
-            return NotFound();
 
         return Ok(user);
     }
+
     [HttpPost]
     public async Task<IActionResult> Create(AddUserCommand command)
     {
         var id = await mediator.Send(command);
 
-        if (id == null)
-            return Conflict("El nombre de usuario ya está registrado");
-
-        return Ok(new { userId = id });
+        return Ok(new
+        {
+            userId = id
+        });
     }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
         Guid id,
@@ -48,25 +50,24 @@ public class UsersController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
 
-        var updated = await mediator.Send(command);
-
-        if (!updated)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await mediator.Send(
-            new DeleteUserCommand { Id = id }
+        await mediator.Send(
+            new DeleteUserCommand
+            {
+                Id = id
+            }
         );
 
-        if (!deleted)
-            return NotFound();
-
-        return Ok();
+        return NoContent();
     }
+
     [HttpGet("username/{username}")]
     public async Task<IActionResult> GetByUsername(string username)
     {
@@ -77,11 +78,9 @@ public class UsersController(IMediator mediator) : ControllerBase
             }
         );
 
-        if (user == null)
-            return NotFound();
-
         return Ok(user);
     }
+
     [HttpPut("{id}/password")]
     public async Task<IActionResult> ChangePassword(
         Guid id,
@@ -89,10 +88,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
 
-        var updated = await mediator.Send(command);
-
-        if (!updated)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }
