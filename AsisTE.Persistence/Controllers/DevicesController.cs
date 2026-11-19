@@ -13,6 +13,7 @@ public class DevicesController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var devices = await mediator.Send(new GetDevicesQuery());
+
         return Ok(devices);
     }
 
@@ -20,11 +21,11 @@ public class DevicesController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var device = await mediator.Send(
-            new GetDeviceByIdQuery { Id = id }
+            new GetDeviceByIdQuery
+            {
+                Id = id
+            }
         );
-
-        if (device == null)
-            return NotFound();
 
         return Ok(device);
     }
@@ -33,7 +34,11 @@ public class DevicesController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Create(AddDeviceCommand command)
     {
         var id = await mediator.Send(command);
-        return Ok(new { deviceId = id });
+
+        return Ok(new
+        {
+            deviceId = id
+        });
     }
 
     [HttpPut("{id}")]
@@ -43,10 +48,7 @@ public class DevicesController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
 
-        var updated = await mediator.Send(command);
-
-        if (!updated)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }
@@ -54,12 +56,12 @@ public class DevicesController(IMediator mediator) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await mediator.Send(
-            new DeleteDeviceCommand { Id = id }
+        await mediator.Send(
+            new DeleteDeviceCommand
+            {
+                Id = id
+            }
         );
-
-        if (!deleted)
-            return NotFound();
 
         return NoContent();
     }

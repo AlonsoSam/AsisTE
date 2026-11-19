@@ -1,5 +1,5 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Devices.Commands;
@@ -11,7 +11,7 @@ public class AddDeviceCommand : IRequest<Guid>
     public string? Location { get; set; }
 }
 
-internal class AddDeviceCommandHandler(IDeviceRepository deviceRepository)
+internal class AddDeviceCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<AddDeviceCommand, Guid>
 {
     public async Task<Guid> Handle(
@@ -28,7 +28,7 @@ internal class AddDeviceCommandHandler(IDeviceRepository deviceRepository)
             CreatedAt = DateTime.Now
         };
 
-        await deviceRepository.AddAsync(device);
+        await unitOfWork.Devices.AddAsync(device);
 
         return device.DeviceId;
     }

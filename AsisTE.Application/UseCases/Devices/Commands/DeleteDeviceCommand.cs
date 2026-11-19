@@ -1,27 +1,25 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Devices.Commands;
 
-public class DeleteDeviceCommand : IRequest<bool>
+public class DeleteDeviceCommand : IRequest
 {
     public Guid Id { get; set; }
 }
 
-internal class DeleteDeviceCommandHandler(IDeviceRepository deviceRepository)
-    : IRequestHandler<DeleteDeviceCommand, bool>
+internal class DeleteDeviceCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<DeleteDeviceCommand>
 {
-    public async Task<bool> Handle(
+    public async Task Handle(
         DeleteDeviceCommand request,
         CancellationToken cancellationToken)
     {
-        var device = await deviceRepository.GetByIdAsync(request.Id);
+        var device = await unitOfWork.Devices.GetByIdAsync(request.Id);
 
         if (device == null)
-            return false;
+            throw new KeyNotFoundException("Dispositivo no encontrado");
 
-        await deviceRepository.DeleteAsync(device);
-
-        return true;
+        await unitOfWork.Devices.DeleteAsync(device);
     }
 }
