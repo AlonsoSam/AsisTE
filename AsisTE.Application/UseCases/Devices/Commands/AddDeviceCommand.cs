@@ -30,6 +30,8 @@ internal class AddDeviceCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Devices.AddAsync(device);
 
+        await unitOfWork.SaveChangesAsync();
+
         return device.DeviceId;
     }
 }

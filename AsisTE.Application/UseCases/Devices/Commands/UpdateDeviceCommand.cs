@@ -30,5 +30,7 @@ internal class UpdateDeviceCommandHandler(IUnitOfWork unitOfWork)
         device.Active = request.Active;
 
         await unitOfWork.Devices.UpdateAsync(device);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

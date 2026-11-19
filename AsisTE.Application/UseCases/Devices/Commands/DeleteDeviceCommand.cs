@@ -21,5 +21,7 @@ internal class DeleteDeviceCommandHandler(IUnitOfWork unitOfWork)
             throw new KeyNotFoundException("Dispositivo no encontrado");
 
         await unitOfWork.Devices.DeleteAsync(device);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

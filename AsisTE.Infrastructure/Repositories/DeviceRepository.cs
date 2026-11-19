@@ -23,18 +23,19 @@ public class DeviceRepository(AsisteContext context) : IDeviceRepository
     public async Task AddAsync(Device device)
     {
         await context.Devices.AddAsync(device);
-        await context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(Device device)
+    public Task UpdateAsync(Device device)
     {
         context.Devices.Update(device);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(Device device)
+    public Task DeleteAsync(Device device)
     {
         context.Devices.Remove(device);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 }
