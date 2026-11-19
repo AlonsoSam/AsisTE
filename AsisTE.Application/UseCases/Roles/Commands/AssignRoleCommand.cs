@@ -27,6 +27,14 @@ internal class AssignRoleCommandHandler(IUnitOfWork unitOfWork)
         if (role == null)
             throw new KeyNotFoundException("Rol no encontrado");
 
+        var alreadyAssigned = await unitOfWork.Roles
+            .UserHasRoleAsync(request.UserId, request.RoleId);
+
+        if (alreadyAssigned)
+            throw new InvalidOperationException(
+                "El usuario ya tiene asignado este rol"
+            );
+
         var userRole = new UserRole
         {
             UserId = request.UserId,

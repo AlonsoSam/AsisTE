@@ -20,6 +20,16 @@ public class RoleRepository(AsisteContext context) : IRoleRepository
             .FirstOrDefaultAsync(x => x.RoleId == id);
     }
 
+    public async Task<bool> UserHasRoleAsync(Guid userId, Guid roleId)
+    {
+        return await context.UserRoles
+            .AsNoTracking()
+            .AnyAsync(x =>
+                x.UserId == userId &&
+                x.RoleId == roleId
+            );
+    }
+
     public async Task AddAsync(Role role)
     {
         await context.Roles.AddAsync(role);

@@ -6,6 +6,7 @@ public interface IRoleRepository
 {
     Task<List<Role>> GetAllAsync();
     Task<Role?> GetByIdAsync(Guid id);
+    Task<bool> UserHasRoleAsync(Guid userId, Guid roleId);
     Task AddAsync(Role role);
     Task AssignRoleAsync(UserRole userRole);
 }
