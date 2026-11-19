@@ -29,18 +29,19 @@ public class UserRepository(AsisteContext context) : IUserRepository
     public async Task AddAsync(User user)
     {
         await context.Users.AddAsync(user);
-        await context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(User user)
+    public Task UpdateAsync(User user)
     {
         context.Users.Update(user);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(User user)
+    public Task DeleteAsync(User user)
     {
         context.Users.Remove(user);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 }

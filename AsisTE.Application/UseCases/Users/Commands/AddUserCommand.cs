@@ -37,6 +37,8 @@ internal class AddUserCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Users.AddAsync(user);
 
+        await unitOfWork.SaveChangesAsync();
+
         return user.UserId;
     }
 }

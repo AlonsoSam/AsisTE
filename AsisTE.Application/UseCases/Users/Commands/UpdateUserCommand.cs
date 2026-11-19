@@ -38,6 +38,8 @@ internal class UpdateUserCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Users.UpdateAsync(user);
 
+        await unitOfWork.SaveChangesAsync();
+
         return true;
     }
 }

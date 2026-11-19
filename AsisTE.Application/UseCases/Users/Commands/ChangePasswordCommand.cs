@@ -25,6 +25,8 @@ internal class ChangePasswordCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Users.UpdateAsync(user);
 
+        await unitOfWork.SaveChangesAsync();
+
         return true;
     }
 }

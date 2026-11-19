@@ -22,6 +22,8 @@ internal class DeleteUserCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Users.DeleteAsync(user);
 
+        await unitOfWork.SaveChangesAsync();
+
         return true;
     }
 }
