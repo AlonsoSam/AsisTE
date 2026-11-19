@@ -1,5 +1,5 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Notifications.Commands;
@@ -11,8 +11,7 @@ public class AddNotificationCommand : IRequest<Guid>
     public string Message { get; set; } = null!;
 }
 
-internal class AddNotificationCommandHandler(
-    INotificationRepository notificationRepository)
+internal class AddNotificationCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<AddNotificationCommand, Guid>
 {
     public async Task<Guid> Handle(
@@ -29,7 +28,7 @@ internal class AddNotificationCommandHandler(
             CreatedAt = DateTime.Now
         };
 
-        await notificationRepository.AddAsync(notification);
+        await unitOfWork.Notifications.AddAsync(notification);
 
         return notification.NotificationId;
     }
