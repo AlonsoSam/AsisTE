@@ -23,11 +23,11 @@ public class RolesController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var role = await mediator.Send(
-            new GetRoleByIdQuery { Id = id }
+            new GetRoleByIdQuery
+            {
+                Id = id
+            }
         );
-
-        if (role == null)
-            return NotFound();
 
         return Ok(role);
     }
@@ -37,16 +37,17 @@ public class RolesController(IMediator mediator) : ControllerBase
     {
         var id = await mediator.Send(command);
 
-        return Ok(new { roleId = id });
+        return Ok(new
+        {
+            roleId = id
+        });
     }
+
     [HttpPost("assign")]
     public async Task<IActionResult> AssignRole(
         AssignRoleCommand command)
     {
-        var assigned = await mediator.Send(command);
-
-        if (!assigned)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }

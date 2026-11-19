@@ -1,5 +1,5 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Roles.Commands;
@@ -9,8 +9,7 @@ public class AddRoleCommand : IRequest<Guid>
     public string RoleName { get; set; } = null!;
 }
 
-internal class AddRoleCommandHandler(
-    IRoleRepository roleRepository)
+internal class AddRoleCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<AddRoleCommand, Guid>
 {
     public async Task<Guid> Handle(
@@ -23,7 +22,7 @@ internal class AddRoleCommandHandler(
             RoleName = request.RoleName
         };
 
-        await roleRepository.AddAsync(role);
+        await unitOfWork.Roles.AddAsync(role);
 
         return role.RoleId;
     }
