@@ -23,12 +23,10 @@ public class RoleRepository(AsisteContext context) : IRoleRepository
     public async Task AddAsync(Role role)
     {
         await context.Roles.AddAsync(role);
-        await context.SaveChangesAsync();
     }
 
     public async Task AssignRoleAsync(UserRole userRole)
     {
         await context.UserRoles.AddAsync(userRole);
-        await context.SaveChangesAsync();
     }
 }

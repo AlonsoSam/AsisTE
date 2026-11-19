@@ -24,6 +24,8 @@ internal class AddRoleCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Roles.AddAsync(role);
 
+        await unitOfWork.SaveChangesAsync();
+
         return role.RoleId;
     }
 }

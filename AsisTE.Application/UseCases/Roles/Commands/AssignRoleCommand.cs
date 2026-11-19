@@ -35,5 +35,7 @@ internal class AssignRoleCommandHandler(IUnitOfWork unitOfWork)
         };
 
         await unitOfWork.Roles.AssignRoleAsync(userRole);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }
