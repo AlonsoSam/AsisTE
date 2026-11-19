@@ -29,9 +29,6 @@ public class NotificationsController(IMediator mediator) : ControllerBase
             }
         );
 
-        if (notification == null)
-            return NotFound();
-
         return Ok(notification);
     }
 
@@ -80,10 +77,7 @@ public class NotificationsController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
 
-        var updated = await mediator.Send(command);
-
-        if (!updated)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }
@@ -91,15 +85,12 @@ public class NotificationsController(IMediator mediator) : ControllerBase
     [HttpPut("{id}/send")]
     public async Task<IActionResult> MarkAsSent(Guid id)
     {
-        var updated = await mediator.Send(
+        await mediator.Send(
             new MarkNotificationAsSentCommand
             {
                 Id = id
             }
         );
-
-        if (!updated)
-            return NotFound();
 
         return Ok();
     }
@@ -107,15 +98,12 @@ public class NotificationsController(IMediator mediator) : ControllerBase
     [HttpPut("{id}/reset")]
     public async Task<IActionResult> Reset(Guid id)
     {
-        var updated = await mediator.Send(
+        await mediator.Send(
             new ResetNotificationCommand
             {
                 Id = id
             }
         );
-
-        if (!updated)
-            return NotFound();
 
         return Ok();
     }
