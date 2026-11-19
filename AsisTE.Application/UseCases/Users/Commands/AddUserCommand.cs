@@ -1,5 +1,5 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Users.Commands;
@@ -11,19 +11,20 @@ public class AddUserCommand : IRequest<Guid?>
     public string? Email { get; set; }
 }
 
-internal class AddUserCommandHandler(
-    IUserRepository userRepository)
+internal class AddUserCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<AddUserCommand, Guid?>
 {
     public async Task<Guid?> Handle(
         AddUserCommand request,
         CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository
-            .GetByUsernameAsync(request.Username);
+        var existingUser =
+            await unitOfWork.Users.GetByUsernameAsync(request.Username);
 
         if (existingUser != null)
-            return null;
+            throw new InvalidOperationException(
+                "El nombre de usuario ya está registrado"
+            );
 
         var user = new User
         {
@@ -34,7 +35,7 @@ internal class AddUserCommandHandler(
             CreatedAt = DateTime.Now
         };
 
-        await userRepository.AddAsync(user);
+        await unitOfWork.Users.AddAsync(user);
 
         return user.UserId;
     }

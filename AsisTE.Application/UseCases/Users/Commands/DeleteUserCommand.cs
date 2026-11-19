@@ -1,4 +1,4 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Users.Commands;
@@ -8,20 +8,19 @@ public class DeleteUserCommand : IRequest<bool>
     public Guid Id { get; set; }
 }
 
-internal class DeleteUserCommandHandler(
-    IUserRepository userRepository)
+internal class DeleteUserCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteUserCommand, bool>
 {
     public async Task<bool> Handle(
         DeleteUserCommand request,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByIdAsync(request.Id);
+        var user = await unitOfWork.Users.GetByIdAsync(request.Id);
 
         if (user == null)
-            return false;
+            throw new KeyNotFoundException("Usuario no encontrado");
 
-        await userRepository.DeleteAsync(user);
+        await unitOfWork.Users.DeleteAsync(user);
 
         return true;
     }

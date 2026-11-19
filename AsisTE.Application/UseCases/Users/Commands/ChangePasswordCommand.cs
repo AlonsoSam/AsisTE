@@ -1,4 +1,4 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Users.Commands;
@@ -9,22 +9,21 @@ public class ChangePasswordCommand : IRequest<bool>
     public string PasswordHash { get; set; } = null!;
 }
 
-internal class ChangePasswordCommandHandler(
-    IUserRepository userRepository)
+internal class ChangePasswordCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<ChangePasswordCommand, bool>
 {
     public async Task<bool> Handle(
         ChangePasswordCommand request,
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByIdAsync(request.Id);
+        var user = await unitOfWork.Users.GetByIdAsync(request.Id);
 
         if (user == null)
-            return false;
+            throw new KeyNotFoundException("Usuario no encontrado");
 
         user.PasswordHash = request.PasswordHash;
 
-        await userRepository.UpdateAsync(user);
+        await unitOfWork.Users.UpdateAsync(user);
 
         return true;
     }
