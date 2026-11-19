@@ -4,6 +4,8 @@ using AsisTE.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using AsisTE.Domain.Ports.UnitOfWork;
+using AsisTE.Infrastructure.Adapters.UnitOfWork;
 
 namespace AsisTE.Infrastructure.Configuration;
 
@@ -28,6 +30,7 @@ public static class InfrastructureServicesExtensions
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }
