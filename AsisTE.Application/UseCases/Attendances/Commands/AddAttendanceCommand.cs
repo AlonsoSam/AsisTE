@@ -1,5 +1,5 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Attendances.Commands;
@@ -14,7 +14,7 @@ public class AddAttendanceCommand : IRequest<Guid>
     public string Status { get; set; } = null!;
 }
 
-internal class AddAttendanceCommandHandler(IAttendanceRepository attendanceRepository)
+internal class AddAttendanceCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<AddAttendanceCommand, Guid>
 {
     public async Task<Guid> Handle(
@@ -33,7 +33,7 @@ internal class AddAttendanceCommandHandler(IAttendanceRepository attendanceRepos
             CreatedAt = DateTime.Now
         };
 
-        await attendanceRepository.AddAsync(attendance);
+        await unitOfWork.Attendances.AddAsync(attendance);
 
         return attendance.AttendanceId;
     }

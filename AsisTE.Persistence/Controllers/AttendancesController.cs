@@ -23,11 +23,11 @@ public class AttendancesController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var attendance = await mediator.Send(
-            new GetAttendanceByIdQuery { Id = id }
+            new GetAttendanceByIdQuery
+            {
+                Id = id
+            }
         );
-
-        if (attendance == null)
-            return NotFound();
 
         return Ok(attendance);
     }
@@ -50,7 +50,11 @@ public class AttendancesController(IMediator mediator) : ControllerBase
         AddAttendanceCommand command)
     {
         var id = await mediator.Send(command);
-        return Ok(new { attendanceId = id });
+
+        return Ok(new
+        {
+            attendanceId = id
+        });
     }
 
     [HttpPut("{id}")]
@@ -60,10 +64,7 @@ public class AttendancesController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
 
-        var updated = await mediator.Send(command);
-
-        if (!updated)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }

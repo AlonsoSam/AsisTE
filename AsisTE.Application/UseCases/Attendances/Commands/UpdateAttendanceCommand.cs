@@ -1,9 +1,9 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Attendances.Commands;
 
-public class UpdateAttendanceCommand : IRequest<bool>
+public class UpdateAttendanceCommand : IRequest
 {
     public Guid Id { get; set; }
     public DateTime? EntryTime { get; set; }
@@ -11,24 +11,22 @@ public class UpdateAttendanceCommand : IRequest<bool>
     public string Status { get; set; } = null!;
 }
 
-internal class UpdateAttendanceCommandHandler(IAttendanceRepository attendanceRepository)
-    : IRequestHandler<UpdateAttendanceCommand, bool>
+internal class UpdateAttendanceCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<UpdateAttendanceCommand>
 {
-    public async Task<bool> Handle(
+    public async Task Handle(
         UpdateAttendanceCommand request,
         CancellationToken cancellationToken)
     {
-        var attendance = await attendanceRepository.GetByIdAsync(request.Id);
+        var attendance = await unitOfWork.Attendances.GetByIdAsync(request.Id);
 
         if (attendance == null)
-            return false;
+            throw new KeyNotFoundException("Asistencia no encontrada");
 
         attendance.EntryTime = request.EntryTime;
         attendance.ExitTime = request.ExitTime;
         attendance.Status = request.Status;
 
-        await attendanceRepository.UpdateAsync(attendance);
-
-        return true;
+        await unitOfWork.Attendances.UpdateAsync(attendance);
     }
 }
