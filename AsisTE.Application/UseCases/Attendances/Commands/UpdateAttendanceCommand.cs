@@ -18,7 +18,8 @@ internal class UpdateAttendanceCommandHandler(IUnitOfWork unitOfWork)
         UpdateAttendanceCommand request,
         CancellationToken cancellationToken)
     {
-        var attendance = await unitOfWork.Attendances.GetByIdAsync(request.Id);
+        var attendance =
+            await unitOfWork.Attendances.GetByIdAsync(request.Id);
 
         if (attendance == null)
             throw new KeyNotFoundException("Asistencia no encontrada");
@@ -28,5 +29,7 @@ internal class UpdateAttendanceCommandHandler(IUnitOfWork unitOfWork)
         attendance.Status = request.Status;
 
         await unitOfWork.Attendances.UpdateAsync(attendance);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

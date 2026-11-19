@@ -31,12 +31,12 @@ public class AttendanceRepository(AsisteContext context) : IAttendanceRepository
     public async Task AddAsync(Attendance attendance)
     {
         await context.Attendances.AddAsync(attendance);
-        await context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(Attendance attendance)
+    public Task UpdateAsync(Attendance attendance)
     {
         context.Attendances.Update(attendance);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 }

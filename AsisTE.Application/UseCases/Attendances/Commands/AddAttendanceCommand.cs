@@ -35,6 +35,8 @@ internal class AddAttendanceCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Attendances.AddAsync(attendance);
 
+        await unitOfWork.SaveChangesAsync();
+
         return attendance.AttendanceId;
     }
 }
