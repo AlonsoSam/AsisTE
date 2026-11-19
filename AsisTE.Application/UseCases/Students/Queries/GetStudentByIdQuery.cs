@@ -1,21 +1,26 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Students.Queries;
 
-public class GetStudentByIdQuery : IRequest<Student?>
+public class GetStudentByIdQuery : IRequest<Student>
 {
     public Guid Id { get; set; }
 }
 
-internal class GetStudentByIdQueryHandler(IStudentRepository studentRepository)
-    : IRequestHandler<GetStudentByIdQuery, Student?>
+internal class GetStudentByIdQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetStudentByIdQuery, Student>
 {
-    public async Task<Student?> Handle(
+    public async Task<Student> Handle(
         GetStudentByIdQuery request,
         CancellationToken cancellationToken)
     {
-        return await studentRepository.GetByIdAsync(request.Id);
+        var student = await unitOfWork.Students.GetByIdAsync(request.Id);
+
+        if (student == null)
+            throw new KeyNotFoundException("Estudiante no encontrado");
+
+        return student;
     }
 }

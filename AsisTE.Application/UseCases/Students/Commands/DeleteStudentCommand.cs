@@ -1,27 +1,25 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Students.Commands;
 
-public class DeleteStudentCommand : IRequest<bool>
+public class DeleteStudentCommand : IRequest
 {
     public Guid Id { get; set; }
 }
 
-internal class DeleteStudentCommandHandler(IStudentRepository studentRepository)
-    : IRequestHandler<DeleteStudentCommand, bool>
+internal class DeleteStudentCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<DeleteStudentCommand>
 {
-    public async Task<bool> Handle(
+    public async Task Handle(
         DeleteStudentCommand request,
         CancellationToken cancellationToken)
     {
-        var student = await studentRepository.GetByIdAsync(request.Id);
+        var student = await unitOfWork.Students.GetByIdAsync(request.Id);
 
         if (student == null)
-            return false;
+            throw new KeyNotFoundException("Estudiante no encontrado");
 
-        await studentRepository.DeleteAsync(student);
-
-        return true;
+        await unitOfWork.Students.DeleteAsync(student);
     }
 }

@@ -1,9 +1,9 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Students.Commands;
 
-public class UpdateStudentCommand : IRequest<bool>
+public class UpdateStudentCommand : IRequest
 {
     public Guid Id { get; set; }
     public string? Dni { get; set; }
@@ -14,17 +14,17 @@ public class UpdateStudentCommand : IRequest<bool>
     public bool Active { get; set; }
 }
 
-internal class UpdateStudentCommandHandler(IStudentRepository studentRepository)
-    : IRequestHandler<UpdateStudentCommand, bool>
+internal class UpdateStudentCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<UpdateStudentCommand>
 {
-    public async Task<bool> Handle(
+    public async Task Handle(
         UpdateStudentCommand request,
         CancellationToken cancellationToken)
     {
-        var student = await studentRepository.GetByIdAsync(request.Id);
+        var student = await unitOfWork.Students.GetByIdAsync(request.Id);
 
         if (student == null)
-            return false;
+            throw new KeyNotFoundException("Estudiante no encontrado");
 
         student.Dni = request.Dni;
         student.FirstName = request.FirstName;
@@ -33,8 +33,6 @@ internal class UpdateStudentCommandHandler(IStudentRepository studentRepository)
         student.Section = request.Section;
         student.Active = request.Active;
 
-        await studentRepository.UpdateAsync(student);
-
-        return true;
+        await unitOfWork.Students.UpdateAsync(student);
     }
 }

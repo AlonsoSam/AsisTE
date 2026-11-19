@@ -13,6 +13,7 @@ public class StudentsController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var students = await mediator.Send(new GetStudentsQuery());
+
         return Ok(students);
     }
 
@@ -20,11 +21,11 @@ public class StudentsController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var student = await mediator.Send(
-            new GetStudentByIdQuery { Id = id }
+            new GetStudentByIdQuery
+            {
+                Id = id
+            }
         );
-
-        if (student == null)
-            return NotFound();
 
         return Ok(student);
     }
@@ -33,7 +34,11 @@ public class StudentsController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Create(AddStudentCommand command)
     {
         var id = await mediator.Send(command);
-        return Ok(new { studentId = id });
+
+        return Ok(new
+        {
+            studentId = id
+        });
     }
 
     [HttpPut("{id}")]
@@ -43,10 +48,7 @@ public class StudentsController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
 
-        var updated = await mediator.Send(command);
-
-        if (!updated)
-            return NotFound();
+        await mediator.Send(command);
 
         return Ok();
     }
@@ -54,12 +56,12 @@ public class StudentsController(IMediator mediator) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await mediator.Send(
-            new DeleteStudentCommand { Id = id }
+        await mediator.Send(
+            new DeleteStudentCommand
+            {
+                Id = id
+            }
         );
-
-        if (!deleted)
-            return NotFound();
 
         return NoContent();
     }

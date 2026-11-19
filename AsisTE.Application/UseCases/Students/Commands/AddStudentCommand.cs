@@ -1,5 +1,5 @@
 using AsisTE.Domain.Entities;
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Students.Commands;
@@ -13,7 +13,7 @@ public class AddStudentCommand : IRequest<Guid>
     public string? Section { get; set; }
 }
 
-internal class AddStudentCommandHandler(IStudentRepository studentRepository)
+internal class AddStudentCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<AddStudentCommand, Guid>
 {
     public async Task<Guid> Handle(
@@ -32,7 +32,7 @@ internal class AddStudentCommandHandler(IStudentRepository studentRepository)
             CreatedAt = DateTime.Now
         };
 
-        await studentRepository.AddAsync(student);
+        await unitOfWork.Students.AddAsync(student);
 
         return student.StudentId;
     }
