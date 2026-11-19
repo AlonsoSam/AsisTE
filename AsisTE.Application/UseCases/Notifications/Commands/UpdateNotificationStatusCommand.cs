@@ -29,6 +29,8 @@ internal class UpdateNotificationStatusCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Notifications.UpdateAsync(notification);
 
+        await unitOfWork.SaveChangesAsync();
+
         return true;
     }
 }

@@ -31,12 +31,12 @@ public class NotificationRepository(AsisteContext context) : INotificationReposi
     public async Task AddAsync(Notification notification)
     {
         await context.Notifications.AddAsync(notification);
-        await context.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(Notification notification)
+    public Task UpdateAsync(Notification notification)
     {
         context.Notifications.Update(notification);
-        await context.SaveChangesAsync();
+
+        return Task.CompletedTask;
     }
 }

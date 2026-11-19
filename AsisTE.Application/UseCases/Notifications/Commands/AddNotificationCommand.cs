@@ -30,6 +30,8 @@ internal class AddNotificationCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Notifications.AddAsync(notification);
 
+        await unitOfWork.SaveChangesAsync();
+
         return notification.NotificationId;
     }
 }

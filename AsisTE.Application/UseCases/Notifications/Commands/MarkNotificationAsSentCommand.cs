@@ -26,6 +26,8 @@ internal class MarkNotificationAsSentCommandHandler(IUnitOfWork unitOfWork)
 
         await unitOfWork.Notifications.UpdateAsync(notification);
 
+        await unitOfWork.SaveChangesAsync();
+
         return true;
     }
 }
