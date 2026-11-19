@@ -18,6 +18,27 @@ internal class AddNotificationCommandHandler(IUnitOfWork unitOfWork)
         AddNotificationCommand request,
         CancellationToken cancellationToken)
     {
+        var guardian =
+            await unitOfWork.Guardians.GetByIdAsync(request.GuardianId);
+
+        if (guardian == null)
+            throw new KeyNotFoundException(
+                "Apoderado no encontrado"
+            );
+
+        if (request.AttendanceId.HasValue)
+        {
+            var attendance =
+                await unitOfWork.Attendances.GetByIdAsync(
+                    request.AttendanceId.Value
+                );
+
+            if (attendance == null)
+                throw new KeyNotFoundException(
+                    "Asistencia no encontrada"
+                );
+        }
+
         var notification = new Notification
         {
             NotificationId = Guid.NewGuid(),
