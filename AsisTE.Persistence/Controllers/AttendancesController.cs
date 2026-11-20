@@ -57,6 +57,19 @@ public class AttendancesController(IMediator mediator) : ControllerBase
 
         return Ok(attendances);
     }
+    
+    [HttpGet("status/{status}")]
+    public async Task<IActionResult> GetByStatus(string status)
+    {
+        var attendances = await mediator.Send(
+            new GetAttendancesByStatusQuery
+            {
+                Status = status
+            }
+        );
+
+        return Ok(attendances);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create(

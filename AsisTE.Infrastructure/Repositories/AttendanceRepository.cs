@@ -35,6 +35,16 @@ public class AttendanceRepository(AsisteContext context) : IAttendanceRepository
             .Where(x => x.AttendanceDate == date)
             .ToListAsync();
     }
+    
+    public async Task<List<Attendance>> GetByStatusAsync(string status)
+    {
+        return await context.Attendances
+            .AsNoTracking()
+            .Where(x =>
+                x.Status.ToLower() == status.ToLower()
+            )
+            .ToListAsync();
+    }
 
     public async Task AddAsync(Attendance attendance)
     {
