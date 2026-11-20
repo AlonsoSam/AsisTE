@@ -18,6 +18,14 @@ internal class AddDeviceCommandHandler(IUnitOfWork unitOfWork)
         AddDeviceCommand request,
         CancellationToken cancellationToken)
     {
+        var existingDevice =
+            await unitOfWork.Devices.GetByCodeAsync(request.DeviceCode);
+
+        if (existingDevice != null)
+            throw new InvalidOperationException(
+                "El código del dispositivo ya está registrado"
+            );
+
         var device = new Device
         {
             DeviceId = Guid.NewGuid(),

@@ -38,4 +38,10 @@ public class DeviceRepository(AsisteContext context) : IDeviceRepository
 
         return Task.CompletedTask;
     }
+        
+    public async Task<Device?> GetByCodeAsync(string deviceCode)
+    {
+        return await context.Devices
+            .FirstOrDefaultAsync(x => x.DeviceCode == deviceCode);
+    }
 }

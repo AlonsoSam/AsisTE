@@ -6,6 +6,7 @@ public interface IDeviceRepository
 {
     Task<List<Device>> GetAllAsync();
     Task<Device?> GetByIdAsync(Guid id);
+    Task<Device?> GetByCodeAsync(string deviceCode);
     Task AddAsync(Device device);
     Task UpdateAsync(Device device);
     Task DeleteAsync(Device device);
