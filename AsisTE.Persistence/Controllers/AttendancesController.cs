@@ -70,6 +70,24 @@ public class AttendancesController(IMediator mediator) : ControllerBase
 
         return Ok(attendances);
     }
+    
+    [HttpGet("student/{studentId}/range")]
+    public async Task<IActionResult> GetByStudentAndDateRange(
+        Guid studentId,
+        [FromQuery] DateOnly startDate,
+        [FromQuery] DateOnly endDate)
+    {
+        var attendances = await mediator.Send(
+            new GetAttendancesByStudentAndDateRangeQuery
+            {
+                StudentId = studentId,
+                StartDate = startDate,
+                EndDate = endDate
+            }
+        );
+
+        return Ok(attendances);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create(

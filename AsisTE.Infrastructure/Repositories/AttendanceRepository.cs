@@ -45,6 +45,21 @@ public class AttendanceRepository(AsisteContext context) : IAttendanceRepository
             )
             .ToListAsync();
     }
+    
+    public async Task<List<Attendance>> GetByStudentAndDateRangeAsync(
+        Guid studentId,
+        DateOnly startDate,
+        DateOnly endDate)
+    {
+        return await context.Attendances
+            .AsNoTracking()
+            .Where(x =>
+                x.StudentId == studentId &&
+                x.AttendanceDate >= startDate &&
+                x.AttendanceDate <= endDate)
+            .OrderBy(x => x.AttendanceDate)
+            .ToListAsync();
+    }
 
     public async Task AddAsync(Attendance attendance)
     {
