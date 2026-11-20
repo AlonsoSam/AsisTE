@@ -20,6 +20,17 @@ internal class AddStudentCommandHandler(IUnitOfWork unitOfWork)
         AddStudentCommand request,
         CancellationToken cancellationToken)
     {
+        if (!string.IsNullOrWhiteSpace(request.Dni))
+        {
+            var existingStudent =
+                await unitOfWork.Students.GetByDniAsync(request.Dni);
+
+            if (existingStudent != null)
+                throw new InvalidOperationException(
+                    "El DNI del estudiante ya está registrado"
+                );
+        }
+
         var student = new Student
         {
             StudentId = Guid.NewGuid(),

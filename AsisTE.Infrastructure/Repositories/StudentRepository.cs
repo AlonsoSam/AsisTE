@@ -38,4 +38,10 @@ public class StudentRepository(AsisteContext context) : IStudentRepository
 
         return Task.CompletedTask;
     }
+    
+    public async Task<Student?> GetByDniAsync(string dni)
+    {
+        return await context.Students
+            .FirstOrDefaultAsync(x => x.Dni == dni);
+    }
 }
