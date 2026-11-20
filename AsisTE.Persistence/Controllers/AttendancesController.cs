@@ -44,6 +44,19 @@ public class AttendancesController(IMediator mediator) : ControllerBase
 
         return Ok(attendances);
     }
+    
+    [HttpGet("date/{date}")]
+    public async Task<IActionResult> GetByDate(DateOnly date)
+    {
+        var attendances = await mediator.Send(
+            new GetAttendancesByDateQuery
+            {
+                Date = date
+            }
+        );
+
+        return Ok(attendances);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create(

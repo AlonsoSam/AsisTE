@@ -7,6 +7,7 @@ public interface IAttendanceRepository
     Task<List<Attendance>> GetAllAsync();
     Task<Attendance?> GetByIdAsync(Guid id);
     Task<List<Attendance>> GetByStudentIdAsync(Guid studentId);
+    Task<List<Attendance>> GetByDateAsync(DateOnly date);
     Task AddAsync(Attendance attendance);
     Task UpdateAsync(Attendance attendance);
 }
