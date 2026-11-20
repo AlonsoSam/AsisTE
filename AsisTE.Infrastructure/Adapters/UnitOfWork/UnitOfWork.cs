@@ -8,6 +8,7 @@ public class UnitOfWork(
     AsisteContext context,
     IStudentRepository studentRepository,
     IGuardianRepository guardianRepository,
+    IStudentGuardianRepository studentGuardianRepository,
     IDeviceRepository deviceRepository,
     IAttendanceRepository attendanceRepository,
     INotificationRepository notificationRepository,
@@ -19,11 +20,15 @@ public class UnitOfWork(
 
     public IGuardianRepository Guardians { get; } = guardianRepository;
 
+    public IStudentGuardianRepository StudentGuardians { get; } = studentGuardianRepository;
+
     public IDeviceRepository Devices { get; } = deviceRepository;
 
-    public IAttendanceRepository Attendances { get; } = attendanceRepository;
+    public IAttendanceRepository Attendances { get; }
+        = attendanceRepository;
 
-    public INotificationRepository Notifications { get; } = notificationRepository;
+    public INotificationRepository Notifications { get; }
+        = notificationRepository;
 
     public IUserRepository Users { get; } = userRepository;
 

@@ -24,6 +24,7 @@ public static class InfrastructureServicesExtensions
         // si agregas otro repositorio registralo aca tambien
         // asi todos seguimos usando la misma configuracion
         services.AddScoped<IStudentRepository, StudentRepository>();
+        services.AddScoped<IStudentGuardianRepository, StudentGuardianRepository>();
         services.AddScoped<IGuardianRepository, GuardianRepository>();
         services.AddScoped<IDeviceRepository, DeviceRepository>();
         services.AddScoped<IAttendanceRepository, AttendanceRepository>();
