@@ -29,6 +29,19 @@ public class StudentsController(IMediator mediator) : ControllerBase
 
         return Ok(student);
     }
+    
+    [HttpGet("{studentId}/guardians")]
+    public async Task<IActionResult> GetGuardians(Guid studentId)
+    {
+        var guardians = await mediator.Send(
+            new GetGuardiansByStudentQuery
+            {
+                StudentId = studentId
+            }
+        );
+
+        return Ok(guardians);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create(AddStudentCommand command)

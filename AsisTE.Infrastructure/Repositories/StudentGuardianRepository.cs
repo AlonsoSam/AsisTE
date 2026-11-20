@@ -13,6 +13,7 @@ public class StudentGuardianRepository(AsisteContext context)
     {
         return await context.StudentGuardians
             .AsNoTracking()
+            .Include(x => x.Guardian)
             .Where(x => x.StudentId == studentId)
             .ToListAsync();
     }
