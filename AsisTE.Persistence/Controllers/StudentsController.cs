@@ -90,4 +90,20 @@ public class StudentsController(IMediator mediator) : ControllerBase
 
         return NoContent();
     }
+    
+    [HttpDelete("{studentId}/guardians/{guardianId}")]
+    public async Task<IActionResult> RemoveGuardian(
+        Guid studentId,
+        Guid guardianId)
+    {
+        await mediator.Send(
+            new RemoveGuardianFromStudentCommand
+            {
+                StudentId = studentId,
+                GuardianId = guardianId
+            }
+        );
+
+        return NoContent();
+    }
 }
