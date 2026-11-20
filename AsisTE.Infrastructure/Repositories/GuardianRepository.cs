@@ -38,4 +38,11 @@ public class GuardianRepository(AsisteContext context) : IGuardianRepository
 
         return Task.CompletedTask;
     }
+    
+    public async Task<Guardian?> GetByDniAsync(string dni)
+    {
+        return await context.Guardians
+            .FirstOrDefaultAsync(x => x.Dni == dni);
+    }
+    
 }

@@ -20,6 +20,17 @@ internal class AddGuardianCommandHandler(IUnitOfWork unitOfWork)
         AddGuardianCommand request,
         CancellationToken cancellationToken)
     {
+        if (!string.IsNullOrWhiteSpace(request.Dni))
+        {
+            var existingGuardian =
+                await unitOfWork.Guardians.GetByDniAsync(request.Dni);
+
+            if (existingGuardian != null)
+                throw new InvalidOperationException(
+                    "El DNI del apoderado ya está registrado"
+                );
+        }
+
         var guardian = new Guardian
         {
             GuardianId = Guid.NewGuid(),
