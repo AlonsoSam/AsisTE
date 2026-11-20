@@ -40,6 +40,18 @@ public class StudentsController(IMediator mediator) : ControllerBase
             studentId = id
         });
     }
+    
+    [HttpPost("{studentId}/guardians")]
+    public async Task<IActionResult> AssignGuardian(
+        Guid studentId,
+        AssignGuardianToStudentCommand command)
+    {
+        command.StudentId = studentId;
+
+        await mediator.Send(command);
+
+        return Ok();
+    }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
