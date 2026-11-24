@@ -12,6 +12,7 @@ import StudentsPage from "../pages/Students/StudentsPage";
 import GuardiansPage from "../pages/Guardians/GuardiansPage";
 import AttendancesPage from "../pages/Attendances/AttendancesPage";
 import DevicesPage from "../pages/Devices/DevicesPage";
+import NotificationsPage from "../pages/Notifications/NotificationsPage";
 
 function ProtectedRoute({ children }) {
     const token = localStorage.getItem("token");
@@ -58,6 +59,10 @@ function AppRoutes() {
                     <Route
                         path="/devices"
                         element={<DevicesPage />}
+                    />
+                    <Route
+                        path="/notifications"
+                        element={<NotificationsPage />}
                     />
                 </Route>
             </Routes>
