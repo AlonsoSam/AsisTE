@@ -2,11 +2,13 @@ using AsisTE.Application.UseCases.Guardians.Commands;
 using AsisTE.Application.UseCases.Guardians.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AsisTE.Persistence.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class GuardiansController(IMediator mediator) : ControllerBase
 {
     [HttpGet]

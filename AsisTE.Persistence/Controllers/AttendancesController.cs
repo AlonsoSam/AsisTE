@@ -2,11 +2,13 @@ using AsisTE.Application.UseCases.Attendances.Commands;
 using AsisTE.Application.UseCases.Attendances.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AsisTE.Persistence.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AttendancesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]

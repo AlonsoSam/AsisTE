@@ -2,11 +2,13 @@ using AsisTE.Application.UseCases.Roles.Commands;
 using AsisTE.Application.UseCases.Roles.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AsisTE.Persistence.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RolesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
