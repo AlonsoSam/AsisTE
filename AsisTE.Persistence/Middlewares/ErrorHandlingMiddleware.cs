@@ -19,6 +19,16 @@ public class ErrorHandlingMiddleware(RequestDelegate next)
                 ex.Message
             );
         }
+        
+        catch (UnauthorizedAccessException ex)
+        {
+            await HandleExceptionAsync(
+                context,
+                HttpStatusCode.Unauthorized,
+                ex.Message
+            );
+        }
+        
         catch (InvalidOperationException ex)
         {
             await HandleExceptionAsync(
