@@ -1,4 +1,4 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Roles.Commands;
@@ -11,26 +11,42 @@ public class UpdateRoleCommand : IRequest
 }
 
 internal class UpdateRoleCommandHandler(
-    IRoleRepository roleRepository)
+    IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateRoleCommand>
 {
     public async Task Handle(
         UpdateRoleCommand request,
         CancellationToken cancellationToken)
     {
-        var role = await roleRepository.GetByIdAsync(
-            request.Id
-        );
+        var role =
+            await unitOfWork.Roles.GetByIdAsync(
+                request.Id
+            );
 
-        if (role is null)
+        if (role == null)
+            throw new KeyNotFoundException(
+                "Rol no encontrado"
+            );
+
+        var existingRole =
+            await unitOfWork.Roles.GetByNameAsync(
+                request.Name
+            );
+
+        if (
+            existingRole != null &&
+            existingRole.RoleId != request.Id
+        )
         {
-            throw new Exception(
-                "No se encontró el rol"
+            throw new InvalidOperationException(
+                "El nombre del rol ya está registrado"
             );
         }
 
         role.RoleName = request.Name;
 
-        await roleRepository.UpdateAsync(role);
+        await unitOfWork.Roles.UpdateAsync(role);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

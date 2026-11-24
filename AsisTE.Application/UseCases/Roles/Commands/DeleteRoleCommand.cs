@@ -1,4 +1,4 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Roles.Commands;
@@ -9,24 +9,25 @@ public class DeleteRoleCommand : IRequest
 }
 
 internal class DeleteRoleCommandHandler(
-    IRoleRepository roleRepository)
+    IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteRoleCommand>
 {
     public async Task Handle(
         DeleteRoleCommand request,
         CancellationToken cancellationToken)
     {
-        var role = await roleRepository.GetByIdAsync(
-            request.Id
-        );
-
-        if (role is null)
-        {
-            throw new Exception(
-                "No se encontró el rol"
+        var role =
+            await unitOfWork.Roles.GetByIdAsync(
+                request.Id
             );
-        }
 
-        await roleRepository.DeleteAsync(role);
+        if (role == null)
+            throw new KeyNotFoundException(
+                "Rol no encontrado"
+            );
+
+        await unitOfWork.Roles.DeleteAsync(role);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

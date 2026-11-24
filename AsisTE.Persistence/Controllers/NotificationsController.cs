@@ -72,18 +72,6 @@ public class NotificationsController(IMediator mediator) : ControllerBase
         });
     }
 
-    [HttpPut("{id}/status")]
-    public async Task<IActionResult> UpdateStatus(
-        Guid id,
-        UpdateNotificationStatusCommand command)
-    {
-        command.Id = id;
-
-        await mediator.Send(command);
-
-        return Ok();
-    }
-
     [HttpPut("{id}/send")]
     public async Task<IActionResult> MarkAsSent(Guid id)
     {

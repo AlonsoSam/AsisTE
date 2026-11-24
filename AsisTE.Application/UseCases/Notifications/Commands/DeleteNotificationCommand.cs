@@ -1,4 +1,4 @@
-using AsisTE.Domain.Ports.Repositories;
+using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
 namespace AsisTE.Application.UseCases.Notifications.Commands;
@@ -9,7 +9,7 @@ public class DeleteNotificationCommand : IRequest
 }
 
 internal class DeleteNotificationCommandHandler(
-    INotificationRepository notificationRepository)
+    IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteNotificationCommand>
 {
     public async Task Handle(
@@ -17,19 +17,19 @@ internal class DeleteNotificationCommandHandler(
         CancellationToken cancellationToken)
     {
         var notification =
-            await notificationRepository.GetByIdAsync(
+            await unitOfWork.Notifications.GetByIdAsync(
                 request.Id
             );
 
-        if (notification is null)
-        {
-            throw new Exception(
-                "No se encontró la notificación"
+        if (notification == null)
+            throw new KeyNotFoundException(
+                "Notificación no encontrada"
             );
-        }
 
-        await notificationRepository.DeleteAsync(
+        await unitOfWork.Notifications.DeleteAsync(
             notification
         );
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

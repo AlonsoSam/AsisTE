@@ -29,23 +29,33 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 
 import api from "../../services/api";
 import { isAdministrator } from "../../services/auth";
 
 function NotificationsPage() {
-    const administrator = isAdministrator();
+    const administrator =
+        isAdministrator();
 
     const [notifications, setNotifications] =
         useState([]);
 
-    const [guardians, setGuardians] = useState([]);
-    const [attendances, setAttendances] = useState([]);
+    const [guardians, setGuardians] =
+        useState([]);
 
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [attendances, setAttendances] =
+        useState([]);
 
-    const [open, setOpen] = useState(false);
+    const [error, setError] =
+        useState("");
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [open, setOpen] =
+        useState(false);
 
     const [deleteOpen, setDeleteOpen] =
         useState(false);
@@ -55,23 +65,19 @@ function NotificationsPage() {
         setNotificationToDelete,
     ] = useState(null);
 
+    const [filterStatus, setFilterStatus] =
+        useState("");
+
+    const [
+        filterGuardian,
+        setFilterGuardian,
+    ] = useState("");
+
     const [form, setForm] = useState({
         guardianId: "",
         attendanceId: "",
         message: "",
     });
-
-    const getGuardianName = (guardianId) => {
-        const guardian = guardians.find(
-            (item) => item.guardianId === guardianId
-        );
-
-        if (!guardian) {
-            return "-";
-        }
-
-        return `${guardian.firstName} ${guardian.lastName}`;
-    };
 
     const loadNotifications = async () => {
         try {
@@ -79,9 +85,13 @@ function NotificationsPage() {
             setError("");
 
             const response =
-                await api.get("/Notifications");
+                await api.get(
+                    "/Notifications"
+                );
 
-            setNotifications(response.data);
+            setNotifications(
+                response.data
+            );
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -92,7 +102,7 @@ function NotificationsPage() {
         }
     };
 
-    const loadFormData = async () => {
+    const loadRelatedData = async () => {
         try {
             const [
                 guardiansResponse,
@@ -119,19 +129,65 @@ function NotificationsPage() {
 
     useEffect(() => {
         loadNotifications();
-        loadFormData();
+        loadRelatedData();
     }, []);
+
+    const getGuardianName = (
+        guardianId
+    ) => {
+        const guardian =
+            guardians.find(
+                (item) =>
+                    item.guardianId ===
+                    guardianId
+            );
+
+        if (!guardian) {
+            return "-";
+        }
+
+        return `${guardian.firstName} ${guardian.lastName}`;
+    };
+
+    const getAttendanceLabel = (
+        attendanceId
+    ) => {
+        if (!attendanceId) {
+            return "-";
+        }
+
+        const attendance =
+            attendances.find(
+                (item) =>
+                    item.attendanceId ===
+                    attendanceId
+            );
+
+        if (!attendance) {
+            return "-";
+        }
+
+        return `${attendance.attendanceDate} - ${attendance.status}`;
+    };
 
     const handleCreate = async () => {
         try {
             setError("");
 
-            await api.post("/Notifications", {
-                guardianId: form.guardianId,
-                attendanceId:
-                    form.attendanceId || null,
-                message: form.message,
-            });
+            await api.post(
+                "/Notifications",
+                {
+                    guardianId:
+                    form.guardianId,
+
+                    attendanceId:
+                        form.attendanceId ||
+                        null,
+
+                    message:
+                    form.message,
+                }
+            );
 
             setForm({
                 guardianId: "",
@@ -150,7 +206,9 @@ function NotificationsPage() {
         }
     };
 
-    const handleMarkSent = async (notification) => {
+    const handleMarkSent = async (
+        notification
+    ) => {
         try {
             setError("");
 
@@ -167,36 +225,167 @@ function NotificationsPage() {
         }
     };
 
-    const handleOpenDelete = (notification) => {
-        setNotificationToDelete(notification);
-        setDeleteOpen(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!notificationToDelete) {
-            return;
-        }
-
+    const handleReset = async (
+        notification
+    ) => {
         try {
             setError("");
 
-            await api.delete(
-                `/Notifications/${notificationToDelete.notificationId}`
+            await api.put(
+                `/Notifications/${notification.notificationId}/reset`
             );
-
-            setDeleteOpen(false);
-            setNotificationToDelete(null);
 
             await loadNotifications();
         } catch (err) {
-            setDeleteOpen(false);
-            setNotificationToDelete(null);
-
             setError(
                 err.response?.data?.message ||
-                "No se pudo eliminar la notificación"
+                "No se pudo restablecer la notificación"
             );
         }
+    };
+
+    const handleFilterByStatus =
+        async (status) => {
+            setFilterStatus(status);
+
+            // filtro individual
+            setFilterGuardian("");
+
+            if (!status) {
+                await loadNotifications();
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError("");
+
+                const response =
+                    await api.get(
+                        `/Notifications/status/${status}`
+                    );
+
+                setNotifications(
+                    response.data
+                );
+            } catch (err) {
+                setError(
+                    err.response?.data
+                        ?.message ||
+                    "No se pudieron filtrar las notificaciones"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+    const handleFilterByGuardian =
+        async (guardianId) => {
+            setFilterGuardian(
+                guardianId
+            );
+
+            // filtro individual
+            setFilterStatus("");
+
+            if (!guardianId) {
+                await loadNotifications();
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError("");
+
+                const response =
+                    await api.get(
+                        `/Notifications/guardian/${guardianId}`
+                    );
+
+                setNotifications(
+                    response.data
+                );
+            } catch (err) {
+                setError(
+                    err.response?.data
+                        ?.message ||
+                    "No se pudieron filtrar las notificaciones"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+    const handleClearFilters =
+        async () => {
+            setFilterStatus("");
+            setFilterGuardian("");
+
+            await loadNotifications();
+        };
+
+    const handleOpenDelete = (
+        notification
+    ) => {
+        setNotificationToDelete(
+            notification
+        );
+
+        setDeleteOpen(true);
+    };
+
+    const handleConfirmDelete =
+        async () => {
+            if (!notificationToDelete) {
+                return;
+            }
+
+            try {
+                setError("");
+
+                await api.delete(
+                    `/Notifications/${notificationToDelete.notificationId}`
+                );
+
+                setDeleteOpen(false);
+
+                setNotificationToDelete(
+                    null
+                );
+
+                await loadNotifications();
+            } catch (err) {
+                setDeleteOpen(false);
+
+                setNotificationToDelete(
+                    null
+                );
+
+                setError(
+                    err.response?.data
+                        ?.message ||
+                    "No se pudo eliminar la notificación"
+                );
+            }
+        };
+
+    const getStatusStyle = (
+        status
+    ) => {
+        if (
+            status?.toLowerCase() ===
+            "enviado"
+        ) {
+            return {
+                bgcolor: "#E8F7EF",
+                color: "#2FA36B",
+            };
+        }
+
+        return {
+            bgcolor: "#FFF4E5",
+            color: "#C97A17",
+        };
     };
 
     return (
@@ -204,7 +393,8 @@ function NotificationsPage() {
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent:
+                        "space-between",
                     alignItems: "center",
                     mb: 3,
                 }}
@@ -215,14 +405,18 @@ function NotificationsPage() {
                     </Typography>
 
                     <Typography color="text.secondary">
-                        Gestión de notificaciones para apoderados
+                        Gestión de
+                        notificaciones para
+                        apoderados
                     </Typography>
                 </Box>
 
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => setOpen(true)}
+                    onClick={() =>
+                        setOpen(true)
+                    }
                 >
                     Nueva notificación
                 </Button>
@@ -232,17 +426,140 @@ function NotificationsPage() {
                 <Alert
                     severity="error"
                     sx={{ mb: 2 }}
-                    onClose={() => setError("")}
+                    onClose={() =>
+                        setError("")
+                    }
                 >
                     {error}
                 </Alert>
             )}
 
+            <Paper
+                elevation={0}
+                sx={{
+                    p: 2,
+                    mb: 2,
+                    border:
+                        "1px solid #E4EBF3",
+                    borderRadius: 3,
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 2,
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                    }}
+                >
+                    <FormControl
+                        size="small"
+                        sx={{
+                            minWidth: 210,
+                        }}
+                    >
+                        <InputLabel>
+                            Estado
+                        </InputLabel>
+
+                        <Select
+                            value={
+                                filterStatus
+                            }
+                            label="Estado"
+                            onChange={(
+                                event
+                            ) =>
+                                handleFilterByStatus(
+                                    event.target
+                                        .value
+                                )
+                            }
+                        >
+                            <MenuItem value="">
+                                Todos
+                            </MenuItem>
+
+                            <MenuItem value="pendiente">
+                                Pendiente
+                            </MenuItem>
+
+                            <MenuItem value="enviado">
+                                Enviado
+                            </MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <FormControl
+                        size="small"
+                        sx={{
+                            minWidth: 240,
+                        }}
+                    >
+                        <InputLabel>
+                            Apoderado
+                        </InputLabel>
+
+                        <Select
+                            value={
+                                filterGuardian
+                            }
+                            label="Apoderado"
+                            onChange={(
+                                event
+                            ) =>
+                                handleFilterByGuardian(
+                                    event.target
+                                        .value
+                                )
+                            }
+                        >
+                            <MenuItem value="">
+                                Todos
+                            </MenuItem>
+
+                            {guardians.map(
+                                (guardian) => (
+                                    <MenuItem
+                                        key={
+                                            guardian.guardianId
+                                        }
+                                        value={
+                                            guardian.guardianId
+                                        }
+                                    >
+                                        {
+                                            guardian.firstName
+                                        }{" "}
+                                        {
+                                            guardian.lastName
+                                        }
+                                    </MenuItem>
+                                )
+                            )}
+                        </Select>
+                    </FormControl>
+
+                    <Button
+                        variant="outlined"
+                        startIcon={
+                            <FilterAltOffIcon />
+                        }
+                        onClick={
+                            handleClearFilters
+                        }
+                    >
+                        Limpiar filtros
+                    </Button>
+                </Box>
+            </Paper>
+
             <TableContainer
                 component={Paper}
                 elevation={0}
                 sx={{
-                    border: "1px solid #E4EBF3",
+                    border:
+                        "1px solid #E4EBF3",
                     borderRadius: 3,
                     overflow: "hidden",
                 }}
@@ -252,6 +569,10 @@ function NotificationsPage() {
                         <TableRow>
                             <TableCell>
                                 Apoderado
+                            </TableCell>
+
+                            <TableCell>
+                                Asistencia
                             </TableCell>
 
                             <TableCell>
@@ -275,7 +596,9 @@ function NotificationsPage() {
                     <TableBody>
                         {!loading &&
                             notifications.map(
-                                (notification) => (
+                                (
+                                    notification
+                                ) => (
                                     <TableRow
                                         key={
                                             notification.notificationId
@@ -283,7 +606,15 @@ function NotificationsPage() {
                                         hover
                                     >
                                         <TableCell>
-                                            {getGuardianName(notification.guardianId)}
+                                            {getGuardianName(
+                                                notification.guardianId
+                                            )}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {getAttendanceLabel(
+                                                notification.attendanceId
+                                            )}
                                         </TableCell>
 
                                         <TableCell>
@@ -298,6 +629,12 @@ function NotificationsPage() {
                                                     notification.status
                                                 }
                                                 size="small"
+                                                sx={{
+                                                    ...getStatusStyle(
+                                                        notification.status
+                                                    ),
+                                                    fontWeight: 600,
+                                                }}
                                             />
                                         </TableCell>
 
@@ -305,13 +642,15 @@ function NotificationsPage() {
                                             {notification.sentAt
                                                 ? new Date(
                                                     notification.sentAt
-                                                ).toLocaleString()
+                                                ).toLocaleString(
+                                                    "es-PE"
+                                                )
                                                 : "-"}
                                         </TableCell>
 
                                         <TableCell align="right">
-                                            {notification.status !==
-                                                "enviado" && (
+                                            {notification.status?.toLowerCase() ===
+                                                "pendiente" && (
                                                     <Tooltip title="Marcar enviada">
                                                         <IconButton
                                                             color="primary"
@@ -322,6 +661,24 @@ function NotificationsPage() {
                                                             }
                                                         >
                                                             <SendIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+
+                                            {notification.status?.toLowerCase() ===
+                                                "enviado" && (
+                                                    <Tooltip title="Volver a pendiente">
+                                                        <IconButton
+                                                            sx={{
+                                                                color: "#C97A17",
+                                                            }}
+                                                            onClick={() =>
+                                                                handleReset(
+                                                                    notification
+                                                                )
+                                                            }
+                                                        >
+                                                            <RestartAltIcon />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
@@ -348,9 +705,24 @@ function NotificationsPage() {
                 </Table>
             </TableContainer>
 
+            {!loading &&
+                notifications.length ===
+                0 && (
+                    <Typography
+                        textAlign="center"
+                        color="text.secondary"
+                        sx={{ mt: 3 }}
+                    >
+                        No hay notificaciones
+                        para mostrar
+                    </Typography>
+                )}
+
             <Dialog
                 open={open}
-                onClose={() => setOpen(false)}
+                onClose={() =>
+                    setOpen(false)
+                }
                 fullWidth
                 maxWidth="sm"
             >
@@ -368,14 +740,20 @@ function NotificationsPage() {
                         </InputLabel>
 
                         <Select
-                            value={form.guardianId}
+                            value={
+                                form.guardianId
+                            }
                             label="Apoderado"
-                            onChange={(event) =>
+                            onChange={(
+                                event
+                            ) =>
                                 setForm(
                                     (previous) => ({
                                         ...previous,
                                         guardianId:
-                                        event.target.value,
+                                        event
+                                            .target
+                                            .value,
                                     })
                                 )
                             }
@@ -415,18 +793,28 @@ function NotificationsPage() {
                                 form.attendanceId
                             }
                             label="Asistencia"
-                            onChange={(event) =>
+                            onChange={(
+                                event
+                            ) =>
                                 setForm(
                                     (previous) => ({
                                         ...previous,
                                         attendanceId:
-                                        event.target.value,
+                                        event
+                                            .target
+                                            .value,
                                     })
                                 )
                             }
                         >
+                            <MenuItem value="">
+                                Sin asistencia
+                            </MenuItem>
+
                             {attendances.map(
-                                (attendance) => (
+                                (
+                                    attendance
+                                ) => (
                                     <MenuItem
                                         key={
                                             attendance.attendanceId
@@ -435,8 +823,13 @@ function NotificationsPage() {
                                             attendance.attendanceId
                                         }
                                     >
-                                        {attendance.attendanceDate} -{" "}
-                                        {attendance.status}
+                                        {
+                                            attendance.attendanceDate
+                                        }{" "}
+                                        -{" "}
+                                        {
+                                            attendance.status
+                                        }
                                     </MenuItem>
                                 )
                             )}
@@ -451,7 +844,8 @@ function NotificationsPage() {
                                 (previous) => ({
                                     ...previous,
                                     message:
-                                    event.target.value,
+                                    event.target
+                                        .value,
                                 })
                             )
                         }
@@ -464,14 +858,18 @@ function NotificationsPage() {
 
                 <DialogActions>
                     <Button
-                        onClick={() => setOpen(false)}
+                        onClick={() =>
+                            setOpen(false)
+                        }
                     >
                         Cancelar
                     </Button>
 
                     <Button
                         variant="contained"
-                        onClick={handleCreate}
+                        onClick={
+                            handleCreate
+                        }
                         disabled={
                             !form.guardianId ||
                             !form.message.trim()
@@ -486,7 +884,10 @@ function NotificationsPage() {
                 open={deleteOpen}
                 onClose={() => {
                     setDeleteOpen(false);
-                    setNotificationToDelete(null);
+
+                    setNotificationToDelete(
+                        null
+                    );
                 }}
                 fullWidth
                 maxWidth="xs"
@@ -497,7 +898,8 @@ function NotificationsPage() {
 
                 <DialogContent>
                     <Typography>
-                        ¿Deseas eliminar esta notificación?
+                        ¿Deseas eliminar esta
+                        notificación?
                     </Typography>
 
                     <Typography
@@ -505,15 +907,21 @@ function NotificationsPage() {
                         color="text.secondary"
                         sx={{ mt: 1 }}
                     >
-                        Esta acción no se puede deshacer.
+                        Esta acción no se puede
+                        deshacer.
                     </Typography>
                 </DialogContent>
 
                 <DialogActions>
                     <Button
                         onClick={() => {
-                            setDeleteOpen(false);
-                            setNotificationToDelete(null);
+                            setDeleteOpen(
+                                false
+                            );
+
+                            setNotificationToDelete(
+                                null
+                            );
                         }}
                     >
                         Cancelar
@@ -522,7 +930,9 @@ function NotificationsPage() {
                     <Button
                         color="error"
                         variant="contained"
-                        onClick={handleConfirmDelete}
+                        onClick={
+                            handleConfirmDelete
+                        }
                     >
                         Eliminar
                     </Button>

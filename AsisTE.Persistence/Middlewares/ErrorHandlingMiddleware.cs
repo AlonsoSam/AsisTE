@@ -44,7 +44,38 @@ public class ErrorHandlingMiddleware
         var message =
             "Ocurrió un error interno en el servidor";
 
-        if (
+        // credenciales incorrectas
+        if (exception is UnauthorizedAccessException)
+        {
+            statusCode =
+                HttpStatusCode.Unauthorized;
+
+            message =
+                exception.Message;
+        }
+
+        // registro no encontrado
+        else if (exception is KeyNotFoundException)
+        {
+            statusCode =
+                HttpStatusCode.NotFound;
+
+            message =
+                exception.Message;
+        }
+
+        // validaciones de negocio
+        else if (exception is InvalidOperationException)
+        {
+            statusCode =
+                HttpStatusCode.BadRequest;
+
+            message =
+                exception.Message;
+        }
+
+        // restricciones de claves foráneas
+        else if (
             exception is DbUpdateException
                 dbUpdateException &&
             dbUpdateException.InnerException
