@@ -35,6 +35,7 @@ public static class InfrastructureServicesExtensions
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }

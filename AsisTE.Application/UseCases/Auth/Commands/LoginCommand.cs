@@ -14,7 +14,8 @@ public class LoginCommand : IRequest<LoginResponseDto>
 
 internal class LoginCommandHandler(
     IUnitOfWork unitOfWork,
-    IPasswordService passwordService)
+    IPasswordService passwordService,
+    ITokenService tokenService)
     : IRequestHandler<LoginCommand, LoginResponseDto>
 {
     public async Task<LoginResponseDto> Handle(
@@ -22,7 +23,9 @@ internal class LoginCommandHandler(
         CancellationToken cancellationToken)
     {
         var user =
-            await unitOfWork.Users.GetByUsernameAsync(request.Username);
+            await unitOfWork.Users.GetByUsernameAsync(
+                request.Username
+            );
 
         if (user == null)
             throw new UnauthorizedAccessException(
@@ -40,11 +43,14 @@ internal class LoginCommandHandler(
                 "Usuario o contraseña incorrectos"
             );
 
+        var token = tokenService.CreateToken(user);
+
         return new LoginResponseDto
         {
             UserId = user.UserId,
             Username = user.Username,
-            Email = user.Email
+            Email = user.Email,
+            Token = token
         };
     }
 }
