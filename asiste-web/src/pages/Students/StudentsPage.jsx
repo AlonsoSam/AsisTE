@@ -29,6 +29,8 @@ import AddIcon from "@mui/icons-material/Add";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
 import DeleteIcon from "@mui/icons-material/Delete";
+import HistoryIcon from "@mui/icons-material/History";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 
 import api from "../../services/api";
 
@@ -37,16 +39,27 @@ function StudentsPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
 
+    // historial de asistencia
+    const [historyOpen, setHistoryOpen] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyStudent, setHistoryStudent] = useState(null);
+    const [studentAttendances, setStudentAttendances] = useState([]);
+
+    const [historyDates, setHistoryDates] = useState({
+        startDate: "",
+        endDate: "",
+    });
+
     // modal para crear estudiante
     const [open, setOpen] = useState(false);
 
-    // estados para inteligencia artificial
+    // inteligencia artificial
     const [aiOpen, setAiOpen] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
     const [aiSummary, setAiSummary] = useState("");
     const [aiStudent, setAiStudent] = useState(null);
 
-    // estados para apoderados
+    // apoderados
     const [guardiansOpen, setGuardiansOpen] = useState(false);
     const [guardianLoading, setGuardianLoading] = useState(false);
     const [studentGuardians, setStudentGuardians] = useState([]);
@@ -128,6 +141,116 @@ function StudentsPage() {
         }
     };
 
+    // -----------------------------
+    // HISTORIAL DE ASISTENCIA
+    // -----------------------------
+
+    const handleAttendanceHistory = async (student) => {
+        try {
+            setError("");
+
+            setHistoryStudent(student);
+            setHistoryLoading(true);
+            setHistoryOpen(true);
+
+            setHistoryDates({
+                startDate: "",
+                endDate: "",
+            });
+
+            const response = await api.get(
+                `/Attendances/student/${student.studentId}`
+            );
+
+            setStudentAttendances(response.data);
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "No se pudo cargar el historial de asistencia"
+            );
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const handleFilterHistory = async () => {
+        if (
+            !historyStudent ||
+            !historyDates.startDate ||
+            !historyDates.endDate
+        ) {
+            return;
+        }
+
+        try {
+            setHistoryLoading(true);
+            setError("");
+
+            const response = await api.get(
+                `/Attendances/student/${historyStudent.studentId}/range`,
+                {
+                    params: {
+                        startDate: historyDates.startDate,
+                        endDate: historyDates.endDate,
+                    },
+                }
+            );
+
+            setStudentAttendances(response.data);
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "No se pudo filtrar el historial"
+            );
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const handleResetHistory = async () => {
+        if (!historyStudent) {
+            return;
+        }
+
+        try {
+            setHistoryLoading(true);
+            setError("");
+
+            setHistoryDates({
+                startDate: "",
+                endDate: "",
+            });
+
+            const response = await api.get(
+                `/Attendances/student/${historyStudent.studentId}`
+            );
+
+            setStudentAttendances(response.data);
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "No se pudo cargar el historial"
+            );
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const handleCloseHistory = () => {
+        setHistoryOpen(false);
+        setHistoryStudent(null);
+        setStudentAttendances([]);
+
+        setHistoryDates({
+            startDate: "",
+            endDate: "",
+        });
+    };
+
+    // -----------------------------
+    // INTELIGENCIA ARTIFICIAL
+    // -----------------------------
+
     const handleAiSummary = async (student) => {
         try {
             setError("");
@@ -161,6 +284,10 @@ function StudentsPage() {
         setAiSummary("");
         setAiStudent(null);
     };
+
+    // -----------------------------
+    // APODERADOS
+    // -----------------------------
 
     const handleGuardians = async (student) => {
         try {
@@ -257,10 +384,35 @@ function StudentsPage() {
         setGuardiansOpen(false);
         setGuardianStudent(null);
         setStudentGuardians([]);
+
         setGuardianForm({
             guardianId: "",
             relationship: "",
         });
+    };
+
+    const getAttendanceStatusStyle = (status) => {
+        const normalizedStatus =
+            status?.toLowerCase() || "";
+
+        if (normalizedStatus === "puntual") {
+            return {
+                background: "#E8F7EF",
+                color: "#2FA36B",
+            };
+        }
+
+        if (normalizedStatus === "tarde") {
+            return {
+                background: "#FFF4E5",
+                color: "#C97A17",
+            };
+        }
+
+        return {
+            background: "#FFF0F0",
+            color: "#D64545",
+        };
     };
 
     return (
@@ -278,7 +430,7 @@ function StudentsPage() {
                     <Typography
                         variant="h4"
                         fontWeight={700}
-                        sx={{ color: "#16324F" }}
+                        sx={{ color: "#0F2742" }}
                     >
                         Estudiantes
                     </Typography>
@@ -296,12 +448,7 @@ function StudentsPage() {
                     startIcon={<AddIcon />}
                     onClick={() => setOpen(true)}
                     sx={{
-                        textTransform: "none",
                         fontWeight: 600,
-                        bgcolor: "#1F6FB2",
-                        "&:hover": {
-                            bgcolor: "#185B93",
-                        },
                     }}
                 >
                     Nuevo estudiante
@@ -321,46 +468,24 @@ function StudentsPage() {
                 component={Paper}
                 elevation={0}
                 sx={{
-                    border: "1px solid #E1E7ED",
-                    borderRadius: 2,
+                    border: "1px solid #E4EBF3",
+                    borderRadius: 3,
                     overflow: "hidden",
+                    boxShadow:
+                        "0 8px 24px rgba(15,39,66,0.04)",
                 }}
             >
                 <Table>
                     <TableHead>
-                        <TableRow
-                            sx={{
-                                bgcolor: "#F4F7FA",
-                            }}
-                        >
-                            <TableCell sx={{ fontWeight: 700 }}>
-                                DNI
-                            </TableCell>
+                        <TableRow>
+                            <TableCell>DNI</TableCell>
+                            <TableCell>Nombres</TableCell>
+                            <TableCell>Apellidos</TableCell>
+                            <TableCell>Grado</TableCell>
+                            <TableCell>Sección</TableCell>
+                            <TableCell>Estado</TableCell>
 
-                            <TableCell sx={{ fontWeight: 700 }}>
-                                Nombres
-                            </TableCell>
-
-                            <TableCell sx={{ fontWeight: 700 }}>
-                                Apellidos
-                            </TableCell>
-
-                            <TableCell sx={{ fontWeight: 700 }}>
-                                Grado
-                            </TableCell>
-
-                            <TableCell sx={{ fontWeight: 700 }}>
-                                Sección
-                            </TableCell>
-
-                            <TableCell sx={{ fontWeight: 700 }}>
-                                Estado
-                            </TableCell>
-
-                            <TableCell
-                                align="right"
-                                sx={{ fontWeight: 700 }}
-                            >
+                            <TableCell align="right">
                                 Acciones
                             </TableCell>
                         </TableRow>
@@ -402,12 +527,16 @@ function StudentsPage() {
                                             }
                                             size="small"
                                             sx={{
-                                                bgcolor: student.active
-                                                    ? "#E7F4EC"
-                                                    : "#F2F2F2",
-                                                color: student.active
-                                                    ? "#2E7D4F"
-                                                    : "#666",
+                                                bgcolor:
+                                                    student.active
+                                                        ? "#E8F7EF"
+                                                        : "#F2F2F2",
+
+                                                color:
+                                                    student.active
+                                                        ? "#2FA36B"
+                                                        : "#667788",
+
                                                 fontWeight: 600,
                                             }}
                                         />
@@ -425,12 +554,29 @@ function StudentsPage() {
                                                 )
                                             }
                                             sx={{
-                                                textTransform: "none",
-                                                mr: 1,
-                                                color: "#546E7A",
+                                                mr: 0.5,
+                                                color: "#667788",
                                             }}
                                         >
                                             Apoderados
+                                        </Button>
+
+                                        <Button
+                                            size="small"
+                                            startIcon={
+                                                <HistoryIcon />
+                                            }
+                                            onClick={() =>
+                                                handleAttendanceHistory(
+                                                    student
+                                                )
+                                            }
+                                            sx={{
+                                                mr: 0.5,
+                                                color: "#2F80ED",
+                                            }}
+                                        >
+                                            Historial
                                         </Button>
 
                                         <Button
@@ -444,8 +590,7 @@ function StudentsPage() {
                                                 )
                                             }
                                             sx={{
-                                                textTransform: "none",
-                                                color: "#1F6FB2",
+                                                color: "#2F80ED",
                                                 fontWeight: 600,
                                             }}
                                         >
@@ -469,7 +614,7 @@ function StudentsPage() {
                     </Typography>
                 )}
 
-            {/* crear estudiante */}
+            {/* CREAR ESTUDIANTE */}
             <Dialog
                 open={open}
                 onClose={() => setOpen(false)}
@@ -532,9 +677,6 @@ function StudentsPage() {
                 <DialogActions>
                     <Button
                         onClick={() => setOpen(false)}
-                        sx={{
-                            textTransform: "none",
-                        }}
                     >
                         Cancelar
                     </Button>
@@ -546,17 +688,283 @@ function StudentsPage() {
                             !form.firstName.trim() ||
                             !form.lastName.trim()
                         }
-                        sx={{
-                            textTransform: "none",
-                            bgcolor: "#1F6FB2",
-                        }}
                     >
                         Guardar
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* apoderados */}
+            {/* HISTORIAL DE ASISTENCIA */}
+            <Dialog
+                open={historyOpen}
+                onClose={handleCloseHistory}
+                fullWidth
+                maxWidth="md"
+            >
+                <DialogTitle>
+                    Historial de asistencia
+                </DialogTitle>
+
+                <DialogContent>
+                    {historyStudent && (
+                        <Box
+                            sx={{
+                                mb: 3,
+                                borderLeft:
+                                    "4px solid #2F80ED",
+                                pl: 2,
+                            }}
+                        >
+                            <Typography
+                                fontWeight={700}
+                                sx={{
+                                    color: "#0F2742",
+                                }}
+                            >
+                                {historyStudent.firstName}{" "}
+                                {historyStudent.lastName}
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Consulta sus registros y filtra
+                                por rango de fechas
+                            </Typography>
+                        </Box>
+                    )}
+
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "flex-end",
+                            flexWrap: "wrap",
+                            gap: 2,
+                            mb: 3,
+                        }}
+                    >
+                        <Box>
+                            <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                color="text.secondary"
+                                sx={{ mb: 0.7 }}
+                            >
+                                Fecha inicial
+                            </Typography>
+
+                            <TextField
+                                type="date"
+                                value={
+                                    historyDates.startDate
+                                }
+                                onChange={(event) =>
+                                    setHistoryDates(
+                                        (previous) => ({
+                                            ...previous,
+                                            startDate:
+                                            event.target
+                                                .value,
+                                        })
+                                    )
+                                }
+                                size="small"
+                                sx={{
+                                    minWidth: 190,
+                                }}
+                            />
+                        </Box>
+
+                        <Box>
+                            <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                color="text.secondary"
+                                sx={{ mb: 0.7 }}
+                            >
+                                Fecha final
+                            </Typography>
+
+                            <TextField
+                                type="date"
+                                value={
+                                    historyDates.endDate
+                                }
+                                onChange={(event) =>
+                                    setHistoryDates(
+                                        (previous) => ({
+                                            ...previous,
+                                            endDate:
+                                            event.target
+                                                .value,
+                                        })
+                                    )
+                                }
+                                size="small"
+                                sx={{
+                                    minWidth: 190,
+                                }}
+                            />
+                        </Box>
+
+                        <Button
+                            variant="contained"
+                            startIcon={
+                                <FilterAltIcon />
+                            }
+                            onClick={
+                                handleFilterHistory
+                            }
+                            disabled={
+                                !historyDates.startDate ||
+                                !historyDates.endDate
+                            }
+                        >
+                            Filtrar
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            onClick={
+                                handleResetHistory
+                            }
+                        >
+                            Mostrar todo
+                        </Button>
+                    </Box>
+
+                    {historyLoading ? (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent:
+                                    "center",
+                                py: 5,
+                            }}
+                        >
+                            <CircularProgress />
+                        </Box>
+                    ) : studentAttendances.length ===
+                    0 ? (
+                        <Alert severity="info">
+                            No existen registros de
+                            asistencia para el periodo
+                            seleccionado.
+                        </Alert>
+                    ) : (
+                        <TableContainer
+                            component={Paper}
+                            elevation={0}
+                            sx={{
+                                border:
+                                    "1px solid #E4EBF3",
+
+                                borderRadius: 2,
+
+                                overflow: "hidden",
+                            }}
+                        >
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>
+                                            Fecha
+                                        </TableCell>
+
+                                        <TableCell>
+                                            Entrada
+                                        </TableCell>
+
+                                        <TableCell>
+                                            Salida
+                                        </TableCell>
+
+                                        <TableCell>
+                                            Estado
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+
+                                <TableBody>
+                                    {studentAttendances.map(
+                                        (attendance) => {
+                                            const statusStyle =
+                                                getAttendanceStatusStyle(
+                                                    attendance.status
+                                                );
+
+                                            return (
+                                                <TableRow
+                                                    key={
+                                                        attendance.attendanceId
+                                                    }
+                                                    hover
+                                                >
+                                                    <TableCell>
+                                                        {
+                                                            attendance.attendanceDate
+                                                        }
+                                                    </TableCell>
+
+                                                    <TableCell>
+                                                        {attendance.entryTime
+                                                            ? new Date(
+                                                                attendance.entryTime
+                                                            ).toLocaleTimeString()
+                                                            : "-"}
+                                                    </TableCell>
+
+                                                    <TableCell>
+                                                        {attendance.exitTime
+                                                            ? new Date(
+                                                                attendance.exitTime
+                                                            ).toLocaleTimeString()
+                                                            : "-"}
+                                                    </TableCell>
+
+                                                    <TableCell>
+                                                        <Chip
+                                                            label={
+                                                                attendance.status
+                                                            }
+                                                            size="small"
+                                                            sx={{
+                                                                textTransform:
+                                                                    "capitalize",
+
+                                                                bgcolor:
+                                                                statusStyle.background,
+
+                                                                color:
+                                                                statusStyle.color,
+
+                                                                fontWeight: 600,
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        }
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={
+                            handleCloseHistory
+                        }
+                    >
+                        Cerrar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* APODERADOS */}
             <Dialog
                 open={guardiansOpen}
                 onClose={handleCloseGuardians}
@@ -572,7 +980,9 @@ function StudentsPage() {
                         <Box sx={{ mb: 3 }}>
                             <Typography
                                 fontWeight={700}
-                                sx={{ color: "#16324F" }}
+                                sx={{
+                                    color: "#0F2742",
+                                }}
                             >
                                 {guardianStudent.firstName}{" "}
                                 {guardianStudent.lastName}
@@ -600,7 +1010,8 @@ function StudentsPage() {
                         </Box>
                     ) : (
                         <>
-                            {studentGuardians.length === 0 ? (
+                            {studentGuardians.length ===
+                            0 ? (
                                 <Alert
                                     severity="info"
                                     sx={{ mb: 2 }}
@@ -619,11 +1030,17 @@ function StudentsPage() {
                                             sx={{
                                                 p: 2,
                                                 mb: 1.5,
+
                                                 border:
-                                                    "1px solid #E1E7ED",
+                                                    "1px solid #E4EBF3",
+
+                                                borderRadius: 2,
+
                                                 display: "flex",
+
                                                 justifyContent:
                                                     "space-between",
+
                                                 alignItems:
                                                     "center",
                                             }}
@@ -660,10 +1077,6 @@ function StudentsPage() {
                                                         guardian.guardianId
                                                     )
                                                 }
-                                                sx={{
-                                                    textTransform:
-                                                        "none",
-                                                }}
                                             >
                                                 Desvincular
                                             </Button>
@@ -676,7 +1089,7 @@ function StudentsPage() {
                                 fontWeight={700}
                                 sx={{
                                     mt: 3,
-                                    color: "#16324F",
+                                    color: "#0F2742",
                                 }}
                             >
                                 Asignar apoderado
@@ -699,6 +1112,7 @@ function StudentsPage() {
                                         setGuardianForm(
                                             (previous) => ({
                                                 ...previous,
+
                                                 guardianId:
                                                 event.target
                                                     .value,
@@ -737,6 +1151,7 @@ function StudentsPage() {
                                     setGuardianForm(
                                         (previous) => ({
                                             ...previous,
+
                                             relationship:
                                             event.target.value,
                                         })
@@ -752,31 +1167,28 @@ function StudentsPage() {
 
                 <DialogActions>
                     <Button
-                        onClick={handleCloseGuardians}
-                        sx={{
-                            textTransform: "none",
-                        }}
+                        onClick={
+                            handleCloseGuardians
+                        }
                     >
                         Cerrar
                     </Button>
 
                     <Button
                         variant="contained"
-                        onClick={handleAssignGuardian}
+                        onClick={
+                            handleAssignGuardian
+                        }
                         disabled={
                             !guardianForm.guardianId
                         }
-                        sx={{
-                            textTransform: "none",
-                            bgcolor: "#1F6FB2",
-                        }}
                     >
                         Asignar
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* inteligencia artificial */}
+            {/* INTELIGENCIA ARTIFICIAL */}
             <Dialog
                 open={aiOpen}
                 onClose={handleCloseAi}
@@ -793,14 +1205,14 @@ function StudentsPage() {
                             sx={{
                                 mb: 2,
                                 borderLeft:
-                                    "4px solid #1F6FB2",
+                                    "4px solid #2F80ED",
                                 pl: 2,
                             }}
                         >
                             <Typography
                                 fontWeight={700}
                                 sx={{
-                                    color: "#16324F",
+                                    color: "#0F2742",
                                 }}
                             >
                                 {aiStudent.firstName}{" "}
@@ -842,8 +1254,10 @@ function StudentsPage() {
                                 whiteSpace: "pre-line",
                             }}
                         >
-                            {aiSummary
-                                .replaceAll("**", "")}
+                            {aiSummary.replaceAll(
+                                "**",
+                                ""
+                            )}
                         </Typography>
                     )}
                 </DialogContent>
@@ -852,9 +1266,6 @@ function StudentsPage() {
                     <Button
                         onClick={handleCloseAi}
                         disabled={aiLoading}
-                        sx={{
-                            textTransform: "none",
-                        }}
                     >
                         Cerrar
                     </Button>
