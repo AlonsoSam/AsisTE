@@ -1,68 +1,92 @@
 using System.Net;
 using System.Text.Json;
+using Npgsql;
 
 namespace AsisTE.Persistence.Middlewares;
 
-public class ErrorHandlingMiddleware(RequestDelegate next)
+public class ErrorHandlingMiddleware
 {
+    private readonly RequestDelegate _next;
+
+    public ErrorHandlingMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await next(context);
+            await _next(context);
         }
-        catch (KeyNotFoundException ex)
+        catch (Exception ex)
         {
-            await HandleExceptionAsync(
-                context,
-                HttpStatusCode.NotFound,
-                ex.Message
-            );
-        }
-        
-        catch (UnauthorizedAccessException ex)
-        {
-            await HandleExceptionAsync(
-                context,
-                HttpStatusCode.Unauthorized,
-                ex.Message
-            );
-        }
-        
-        catch (InvalidOperationException ex)
-        {
-            await HandleExceptionAsync(
-                context,
-                HttpStatusCode.Conflict,
-                ex.Message
-            );
-        }
-        catch (Exception)
-        {
-            await HandleExceptionAsync(
-                context,
-                HttpStatusCode.InternalServerError,
-                "Ocurrió un error interno en el servidor"
-            );
+            await HandleExceptionAsync(context, ex);
         }
     }
 
     private static async Task HandleExceptionAsync(
         HttpContext context,
-        HttpStatusCode statusCode,
-        string message)
+        Exception exception)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)statusCode;
+
+        var statusCode = HttpStatusCode.InternalServerError;
+
+        var message =
+            "Ocurrió un error interno en el servidor";
+
+        // error de integridad referencial de PostgreSQL
+        if (
+            exception is Microsoft.EntityFrameworkCore
+                .DbUpdateException dbUpdateException &&
+            dbUpdateException.InnerException
+                is PostgresException postgresException &&
+            postgresException.SqlState == "23503"
+        )
+        {
+            statusCode = HttpStatusCode.Conflict;
+
+            message = GetForeignKeyMessage(
+                postgresException.ConstraintName
+            );
+        }
+
+        context.Response.StatusCode =
+            (int)statusCode;
 
         var response = new
         {
-            status = context.Response.StatusCode,
             message
         };
 
         await context.Response.WriteAsync(
             JsonSerializer.Serialize(response)
         );
+    }
+
+    private static string GetForeignKeyMessage(
+        string? constraintName)
+    {
+        return constraintName switch
+        {
+            "attendances_student_id_fkey" =>
+                "No se puede eliminar el estudiante porque tiene registros de asistencia asociados.",
+
+            "notifications_guardian_id_fkey" =>
+                "No se puede eliminar el apoderado porque tiene notificaciones asociadas.",
+
+            "student_guardians_student_id_fkey" =>
+                "No se puede eliminar el estudiante porque tiene apoderados asociados.",
+
+            "student_guardians_guardian_id_fkey" =>
+                "No se puede eliminar el apoderado porque está asociado a un estudiante.",
+
+            "attendances_device_id_fkey" =>
+                "No se puede eliminar el dispositivo porque tiene registros de asistencia asociados.",
+
+            _ =>
+                "No se puede eliminar este registro porque tiene información relacionada."
+        };
     }
 }

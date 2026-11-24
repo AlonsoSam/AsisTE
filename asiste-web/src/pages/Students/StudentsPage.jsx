@@ -11,6 +11,7 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
+    IconButton,
     InputLabel,
     MenuItem,
     Paper,
@@ -22,6 +23,7 @@ import {
     TableHead,
     TableRow,
     TextField,
+    Tooltip,
     Typography,
 } from "@mui/material";
 
@@ -29,6 +31,7 @@ import AddIcon from "@mui/icons-material/Add";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import HistoryIcon from "@mui/icons-material/History";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 
@@ -39,7 +42,35 @@ function StudentsPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
 
-    // historial de asistencia
+    // crear estudiante
+    const [open, setOpen] = useState(false);
+
+    const [form, setForm] = useState({
+        dni: "",
+        firstName: "",
+        lastName: "",
+        grade: "",
+        section: "",
+    });
+
+    // editar estudiante
+    const [editOpen, setEditOpen] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+
+    const [editForm, setEditForm] = useState({
+        dni: "",
+        firstName: "",
+        lastName: "",
+        grade: "",
+        section: "",
+        active: true,
+    });
+
+    // eliminar estudiante
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState(null);
+
+    // historial
     const [historyOpen, setHistoryOpen] = useState(false);
     const [historyLoading, setHistoryLoading] = useState(false);
     const [historyStudent, setHistoryStudent] = useState(null);
@@ -49,9 +80,6 @@ function StudentsPage() {
         startDate: "",
         endDate: "",
     });
-
-    // modal para crear estudiante
-    const [open, setOpen] = useState(false);
 
     // inteligencia artificial
     const [aiOpen, setAiOpen] = useState(false);
@@ -71,13 +99,9 @@ function StudentsPage() {
         relationship: "",
     });
 
-    const [form, setForm] = useState({
-        dni: "",
-        firstName: "",
-        lastName: "",
-        grade: "",
-        section: "",
-    });
+    // -----------------------------
+    // CARGAR ESTUDIANTES
+    // -----------------------------
 
     const loadStudents = async () => {
         try {
@@ -100,6 +124,10 @@ function StudentsPage() {
     useEffect(() => {
         loadStudents();
     }, []);
+
+    // -----------------------------
+    // CREAR ESTUDIANTE
+    // -----------------------------
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -137,6 +165,102 @@ function StudentsPage() {
             setError(
                 err.response?.data?.message ||
                 "No se pudo registrar el estudiante"
+            );
+        }
+    };
+
+    // -----------------------------
+    // EDITAR ESTUDIANTE
+    // -----------------------------
+
+    const handleOpenEdit = (student) => {
+        setSelectedStudent(student);
+
+        setEditForm({
+            dni: student.dni || "",
+            firstName: student.firstName || "",
+            lastName: student.lastName || "",
+            grade: student.grade || "",
+            section: student.section || "",
+            active: student.active,
+        });
+
+        setEditOpen(true);
+    };
+
+    const handleEditChange = (event) => {
+        const { name, value } = event.target;
+
+        setEditForm((previous) => ({
+            ...previous,
+            [name]: value,
+        }));
+    };
+
+    const handleUpdate = async () => {
+        if (!selectedStudent) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await api.put(
+                `/Students/${selectedStudent.studentId}`,
+                {
+                    dni: editForm.dni || null,
+                    firstName: editForm.firstName,
+                    lastName: editForm.lastName,
+                    grade: editForm.grade || null,
+                    section: editForm.section || null,
+                    active: editForm.active,
+                }
+            );
+
+            setEditOpen(false);
+            setSelectedStudent(null);
+
+            await loadStudents();
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "No se pudo actualizar el estudiante"
+            );
+        }
+    };
+
+    // -----------------------------
+    // ELIMINAR ESTUDIANTE
+    // -----------------------------
+
+    const handleOpenDelete = (student) => {
+        setStudentToDelete(student);
+        setDeleteOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!studentToDelete) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await api.delete(
+                `/Students/${studentToDelete.studentId}`
+            );
+
+            setDeleteOpen(false);
+            setStudentToDelete(null);
+
+            await loadStudents();
+        } catch (err) {
+            setDeleteOpen(false);
+            setStudentToDelete(null);
+
+            setError(
+                err.response?.data?.message ||
+                "No se pudo eliminar el estudiante"
             );
         }
     };
@@ -248,7 +372,7 @@ function StudentsPage() {
     };
 
     // -----------------------------
-    // INTELIGENCIA ARTIFICIAL
+    // IA
     // -----------------------------
 
     const handleAiSummary = async (student) => {
@@ -423,22 +547,14 @@ function StudentsPage() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     mb: 3,
-                    gap: 2,
                 }}
             >
                 <Box>
-                    <Typography
-                        variant="h4"
-                        fontWeight={700}
-                        sx={{ color: "#0F2742" }}
-                    >
+                    <Typography variant="h4">
                         Estudiantes
                     </Typography>
 
-                    <Typography
-                        color="text.secondary"
-                        sx={{ mt: 0.5 }}
-                    >
+                    <Typography color="text.secondary">
                         Gestión de estudiantes registrados
                     </Typography>
                 </Box>
@@ -447,9 +563,6 @@ function StudentsPage() {
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={() => setOpen(true)}
-                    sx={{
-                        fontWeight: 600,
-                    }}
                 >
                     Nuevo estudiante
                 </Button>
@@ -459,6 +572,7 @@ function StudentsPage() {
                 <Alert
                     severity="error"
                     sx={{ mb: 2 }}
+                    onClose={() => setError("")}
                 >
                     {error}
                 </Alert>
@@ -554,7 +668,6 @@ function StudentsPage() {
                                                 )
                                             }
                                             sx={{
-                                                mr: 0.5,
                                                 color: "#667788",
                                             }}
                                         >
@@ -571,10 +684,6 @@ function StudentsPage() {
                                                     student
                                                 )
                                             }
-                                            sx={{
-                                                mr: 0.5,
-                                                color: "#2F80ED",
-                                            }}
                                         >
                                             Historial
                                         </Button>
@@ -589,13 +698,36 @@ function StudentsPage() {
                                                     student
                                                 )
                                             }
-                                            sx={{
-                                                color: "#2F80ED",
-                                                fontWeight: 600,
-                                            }}
                                         >
-                                            Analizar IA
+                                            IA
                                         </Button>
+
+                                        <Tooltip title="Editar">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() =>
+                                                    handleOpenEdit(
+                                                        student
+                                                    )
+                                                }
+                                            >
+                                                <EditIcon />
+                                            </IconButton>
+                                        </Tooltip>
+
+                                        <Tooltip title="Eliminar">
+                                            <IconButton
+                                                size="small"
+                                                color="error"
+                                                onClick={() =>
+                                                    handleOpenDelete(
+                                                        student
+                                                    )
+                                                }
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Tooltip>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -614,7 +746,7 @@ function StudentsPage() {
                     </Typography>
                 )}
 
-            {/* CREAR ESTUDIANTE */}
+            {/* CREAR */}
             <Dialog
                 open={open}
                 onClose={() => setOpen(false)}
@@ -676,7 +808,9 @@ function StudentsPage() {
 
                 <DialogActions>
                     <Button
-                        onClick={() => setOpen(false)}
+                        onClick={() =>
+                            setOpen(false)
+                        }
                     >
                         Cancelar
                     </Button>
@@ -694,7 +828,179 @@ function StudentsPage() {
                 </DialogActions>
             </Dialog>
 
-            {/* HISTORIAL DE ASISTENCIA */}
+            {/* EDITAR */}
+            <Dialog
+                open={editOpen}
+                onClose={() => setEditOpen(false)}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>
+                    Editar estudiante
+                </DialogTitle>
+
+                <DialogContent>
+                    <TextField
+                        label="DNI"
+                        name="dni"
+                        value={editForm.dni}
+                        onChange={handleEditChange}
+                        fullWidth
+                        margin="normal"
+                    />
+
+                    <TextField
+                        label="Nombres"
+                        name="firstName"
+                        value={editForm.firstName}
+                        onChange={handleEditChange}
+                        fullWidth
+                        margin="normal"
+                        required
+                    />
+
+                    <TextField
+                        label="Apellidos"
+                        name="lastName"
+                        value={editForm.lastName}
+                        onChange={handleEditChange}
+                        fullWidth
+                        margin="normal"
+                        required
+                    />
+
+                    <TextField
+                        label="Grado"
+                        name="grade"
+                        value={editForm.grade}
+                        onChange={handleEditChange}
+                        fullWidth
+                        margin="normal"
+                    />
+
+                    <TextField
+                        label="Sección"
+                        name="section"
+                        value={editForm.section}
+                        onChange={handleEditChange}
+                        fullWidth
+                        margin="normal"
+                    />
+
+                    <FormControl
+                        fullWidth
+                        margin="normal"
+                    >
+                        <InputLabel>
+                            Estado
+                        </InputLabel>
+
+                        <Select
+                            value={
+                                editForm.active
+                                    ? "activo"
+                                    : "inactivo"
+                            }
+                            label="Estado"
+                            onChange={(event) =>
+                                setEditForm(
+                                    (previous) => ({
+                                        ...previous,
+                                        active:
+                                            event.target.value ===
+                                            "activo",
+                                    })
+                                )
+                            }
+                        >
+                            <MenuItem value="activo">
+                                Activo
+                            </MenuItem>
+
+                            <MenuItem value="inactivo">
+                                Inactivo
+                            </MenuItem>
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() =>
+                            setEditOpen(false)
+                        }
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        onClick={handleUpdate}
+                        disabled={
+                            !editForm.firstName.trim() ||
+                            !editForm.lastName.trim()
+                        }
+                    >
+                        Actualizar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* ELIMINAR */}
+            <Dialog
+                open={deleteOpen}
+                onClose={() => {
+                    setDeleteOpen(false);
+                    setStudentToDelete(null);
+                }}
+                fullWidth
+                maxWidth="xs"
+            >
+                <DialogTitle>
+                    Eliminar estudiante
+                </DialogTitle>
+
+                <DialogContent>
+                    <Typography>
+                        ¿Deseas eliminar al estudiante{" "}
+                        <strong>
+                            {studentToDelete?.firstName}{" "}
+                            {studentToDelete?.lastName}
+                        </strong>
+                        ?
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                    >
+                        El registro solo podrá eliminarse si no tiene
+                        información relacionada.
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() => {
+                            setDeleteOpen(false);
+                            setStudentToDelete(null);
+                        }}
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        color="error"
+                        variant="contained"
+                        onClick={handleConfirmDelete}
+                    >
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* HISTORIAL */}
             <Dialog
                 open={historyOpen}
                 onClose={handleCloseHistory}
@@ -715,12 +1021,7 @@ function StudentsPage() {
                                 pl: 2,
                             }}
                         >
-                            <Typography
-                                fontWeight={700}
-                                sx={{
-                                    color: "#0F2742",
-                                }}
-                            >
+                            <Typography fontWeight={700}>
                                 {historyStudent.firstName}{" "}
                                 {historyStudent.lastName}
                             </Typography>
@@ -729,8 +1030,8 @@ function StudentsPage() {
                                 variant="body2"
                                 color="text.secondary"
                             >
-                                Consulta sus registros y filtra
-                                por rango de fechas
+                                Consulta sus registros y filtra por
+                                rango de fechas
                             </Typography>
                         </Box>
                     )}
@@ -739,8 +1040,8 @@ function StudentsPage() {
                         sx={{
                             display: "flex",
                             alignItems: "flex-end",
-                            flexWrap: "wrap",
                             gap: 2,
+                            flexWrap: "wrap",
                             mb: 3,
                         }}
                     >
@@ -764,15 +1065,11 @@ function StudentsPage() {
                                         (previous) => ({
                                             ...previous,
                                             startDate:
-                                            event.target
-                                                .value,
+                                            event.target.value,
                                         })
                                     )
                                 }
                                 size="small"
-                                sx={{
-                                    minWidth: 190,
-                                }}
                             />
                         </Box>
 
@@ -796,15 +1093,11 @@ function StudentsPage() {
                                         (previous) => ({
                                             ...previous,
                                             endDate:
-                                            event.target
-                                                .value,
+                                            event.target.value,
                                         })
                                     )
                                 }
                                 size="small"
-                                sx={{
-                                    minWidth: 190,
-                                }}
                             />
                         </Box>
 
@@ -838,19 +1131,15 @@ function StudentsPage() {
                         <Box
                             sx={{
                                 display: "flex",
-                                justifyContent:
-                                    "center",
-                                py: 5,
+                                justifyContent: "center",
+                                py: 4,
                             }}
                         >
                             <CircularProgress />
                         </Box>
-                    ) : studentAttendances.length ===
-                    0 ? (
+                    ) : studentAttendances.length === 0 ? (
                         <Alert severity="info">
-                            No existen registros de
-                            asistencia para el periodo
-                            seleccionado.
+                            No existen registros de asistencia.
                         </Alert>
                     ) : (
                         <TableContainer
@@ -859,10 +1148,7 @@ function StudentsPage() {
                             sx={{
                                 border:
                                     "1px solid #E4EBF3",
-
                                 borderRadius: 2,
-
-                                overflow: "hidden",
                             }}
                         >
                             <Table>
@@ -871,15 +1157,12 @@ function StudentsPage() {
                                         <TableCell>
                                             Fecha
                                         </TableCell>
-
                                         <TableCell>
                                             Entrada
                                         </TableCell>
-
                                         <TableCell>
                                             Salida
                                         </TableCell>
-
                                         <TableCell>
                                             Estado
                                         </TableCell>
@@ -932,13 +1215,10 @@ function StudentsPage() {
                                                             sx={{
                                                                 textTransform:
                                                                     "capitalize",
-
                                                                 bgcolor:
                                                                 statusStyle.background,
-
                                                                 color:
                                                                 statusStyle.color,
-
                                                                 fontWeight: 600,
                                                             }}
                                                         />
@@ -978,12 +1258,7 @@ function StudentsPage() {
                 <DialogContent>
                     {guardianStudent && (
                         <Box sx={{ mb: 3 }}>
-                            <Typography
-                                fontWeight={700}
-                                sx={{
-                                    color: "#0F2742",
-                                }}
-                            >
+                            <Typography fontWeight={700}>
                                 {guardianStudent.firstName}{" "}
                                 {guardianStudent.lastName}
                             </Typography>
@@ -992,8 +1267,8 @@ function StudentsPage() {
                                 variant="body2"
                                 color="text.secondary"
                             >
-                                Gestiona las personas responsables
-                                asociadas al estudiante
+                                Gestiona los apoderados asociados al
+                                estudiante
                             </Typography>
                         </Box>
                     )}
@@ -1010,13 +1285,12 @@ function StudentsPage() {
                         </Box>
                     ) : (
                         <>
-                            {studentGuardians.length ===
-                            0 ? (
+                            {studentGuardians.length === 0 ? (
                                 <Alert
                                     severity="info"
                                     sx={{ mb: 2 }}
                                 >
-                                    Todavía no tiene apoderados
+                                    El estudiante no tiene apoderados
                                     asignados.
                                 </Alert>
                             ) : (
@@ -1028,19 +1302,14 @@ function StudentsPage() {
                                             }
                                             elevation={0}
                                             sx={{
-                                                p: 2,
-                                                mb: 1.5,
-
                                                 border:
                                                     "1px solid #E4EBF3",
-
                                                 borderRadius: 2,
-
+                                                p: 2,
+                                                mb: 1.5,
                                                 display: "flex",
-
                                                 justifyContent:
                                                     "space-between",
-
                                                 alignItems:
                                                     "center",
                                             }}
@@ -1069,9 +1338,6 @@ function StudentsPage() {
                                             <Button
                                                 color="error"
                                                 size="small"
-                                                startIcon={
-                                                    <DeleteIcon />
-                                                }
                                                 onClick={() =>
                                                     handleRemoveGuardian(
                                                         guardian.guardianId
@@ -1084,16 +1350,6 @@ function StudentsPage() {
                                     )
                                 )
                             )}
-
-                            <Typography
-                                fontWeight={700}
-                                sx={{
-                                    mt: 3,
-                                    color: "#0F2742",
-                                }}
-                            >
-                                Asignar apoderado
-                            </Typography>
 
                             <FormControl
                                 fullWidth
@@ -1112,10 +1368,8 @@ function StudentsPage() {
                                         setGuardianForm(
                                             (previous) => ({
                                                 ...previous,
-
                                                 guardianId:
-                                                event.target
-                                                    .value,
+                                                event.target.value,
                                             })
                                         )
                                     }
@@ -1151,7 +1405,6 @@ function StudentsPage() {
                                     setGuardianForm(
                                         (previous) => ({
                                             ...previous,
-
                                             relationship:
                                             event.target.value,
                                         })
@@ -1188,7 +1441,7 @@ function StudentsPage() {
                 </DialogActions>
             </Dialog>
 
-            {/* INTELIGENCIA ARTIFICIAL */}
+            {/* IA */}
             <Dialog
                 open={aiOpen}
                 onClose={handleCloseAi}
@@ -1209,12 +1462,7 @@ function StudentsPage() {
                                 pl: 2,
                             }}
                         >
-                            <Typography
-                                fontWeight={700}
-                                sx={{
-                                    color: "#0F2742",
-                                }}
-                            >
+                            <Typography fontWeight={700}>
                                 {aiStudent.firstName}{" "}
                                 {aiStudent.lastName}
                             </Typography>
@@ -1223,8 +1471,8 @@ function StudentsPage() {
                                 variant="body2"
                                 color="text.secondary"
                             >
-                                Análisis generado a partir de
-                                sus registros de asistencia
+                                Análisis generado a partir de sus
+                                registros de asistencia
                             </Typography>
                         </Box>
                     )}
@@ -1233,19 +1481,11 @@ function StudentsPage() {
                         <Box
                             sx={{
                                 display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                gap: 2,
-                                py: 5,
+                                justifyContent: "center",
+                                py: 4,
                             }}
                         >
                             <CircularProgress />
-
-                            <Typography
-                                color="text.secondary"
-                            >
-                                Analizando registros...
-                            </Typography>
                         </Box>
                     ) : (
                         <Typography
