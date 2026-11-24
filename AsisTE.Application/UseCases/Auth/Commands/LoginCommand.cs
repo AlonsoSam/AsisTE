@@ -43,7 +43,17 @@ internal class LoginCommandHandler(
                 "Usuario o contraseña incorrectos"
             );
 
-        var token = tokenService.CreateToken(user);
+        var roles =
+            await unitOfWork.Roles.GetByUserIdAsync(user.UserId);
+
+        var roleNames = roles
+            .Select(role => role.RoleName)
+            .ToList();
+
+        var token = tokenService.CreateToken(
+            user,
+            roleNames
+        );
 
         return new LoginResponseDto
         {

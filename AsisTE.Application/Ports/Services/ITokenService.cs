@@ -4,5 +4,7 @@ namespace AsisTE.Application.Ports.Services;
 
 public interface ITokenService
 {
-    string CreateToken(User user);
+    string CreateToken(
+        User user,
+        IEnumerable<string> roles);
 }

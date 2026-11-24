@@ -11,7 +11,9 @@ namespace AsisTE.Infrastructure.Adapters.Services;
 public class TokenService(IConfiguration configuration)
     : ITokenService
 {
-    public string CreateToken(User user)
+    public string CreateToken(
+        User user,
+        IEnumerable<string> roles)
     {
         var key = configuration["Jwt:Key"];
 
@@ -31,6 +33,13 @@ public class TokenService(IConfiguration configuration)
                 user.Username
             )
         };
+
+        foreach (var role in roles)
+        {
+            claims.Add(
+                new Claim(ClaimTypes.Role, role)
+            );
+        }
 
         var securityKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(key)

@@ -45,4 +45,12 @@ public class RoleRepository(AsisteContext context) : IRoleRepository
         return await context.Roles
             .FirstOrDefaultAsync(x => x.RoleName == roleName);
     }
+    public async Task<List<Role>> GetByUserIdAsync(Guid userId)
+    {
+        return await context.UserRoles
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .Select(x => x.Role)
+            .ToListAsync();
+    }
 }
