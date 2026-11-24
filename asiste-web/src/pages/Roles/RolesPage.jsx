@@ -10,6 +10,7 @@ import {
     DialogTitle,
     IconButton,
     Paper,
+    Skeleton,
     Table,
     TableBody,
     TableCell,
@@ -24,6 +25,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 
 import api from "../../services/api";
 
@@ -31,6 +33,7 @@ function RolesPage() {
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     const [open, setOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
@@ -71,6 +74,7 @@ function RolesPage() {
     const handleCreate = async () => {
         try {
             setError("");
+            setSuccess("");
 
             await api.post("/Roles", {
                 roleName: form.roleName,
@@ -81,6 +85,8 @@ function RolesPage() {
             });
 
             setOpen(false);
+
+            setSuccess("Rol registrado correctamente");
 
             await loadRoles();
         } catch (err) {
@@ -108,6 +114,7 @@ function RolesPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             await api.put(
                 `/Roles/${selectedRole.roleId}`,
@@ -118,6 +125,8 @@ function RolesPage() {
 
             setEditOpen(false);
             setSelectedRole(null);
+
+            setSuccess("Rol actualizado correctamente");
 
             await loadRoles();
         } catch (err) {
@@ -140,6 +149,7 @@ function RolesPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             await api.delete(
                 `/Roles/${roleToDelete.roleId}`
@@ -147,6 +157,8 @@ function RolesPage() {
 
             setDeleteOpen(false);
             setRoleToDelete(null);
+
+            setSuccess("Rol eliminado correctamente");
 
             await loadRoles();
         } catch (err) {
@@ -165,8 +177,16 @@ function RolesPage() {
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: {
+                        xs: "column",
+                        sm: "row",
+                    },
                     justifyContent: "space-between",
-                    alignItems: "center",
+                    alignItems: {
+                        xs: "stretch",
+                        sm: "center",
+                    },
+                    gap: 2,
                     mb: 3,
                 }}
             >
@@ -184,6 +204,12 @@ function RolesPage() {
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={() => setOpen(true)}
+                    sx={{
+                        alignSelf: {
+                            xs: "stretch",
+                            sm: "auto",
+                        },
+                    }}
                 >
                     Nuevo rol
                 </Button>
@@ -192,10 +218,20 @@ function RolesPage() {
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2, borderRadius: 2 }}
                     onClose={() => setError("")}
                 >
                     {error}
+                </Alert>
+            )}
+
+            {success && (
+                <Alert
+                    severity="success"
+                    sx={{ mb: 2, borderRadius: 2 }}
+                    onClose={() => setSuccess("")}
+                >
+                    {success}
                 </Alert>
             )}
 
@@ -205,10 +241,10 @@ function RolesPage() {
                 sx={{
                     border: "1px solid #E4EBF3",
                     borderRadius: 3,
-                    overflow: "hidden",
+                    overflowX: "auto",
                 }}
             >
-                <Table>
+                <Table sx={{ minWidth: 520 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>
@@ -222,8 +258,17 @@ function RolesPage() {
                     </TableHead>
 
                     <TableBody>
-                        {!loading &&
-                            roles.map((role) => (
+                        {loading
+                            ? Array.from({ length: 3 }).map((_, index) => (
+                                <TableRow key={index}>
+                                    {Array.from({ length: 2 }).map((_, cellIndex) => (
+                                        <TableCell key={cellIndex}>
+                                            <Skeleton height={32} />
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                            : roles.map((role) => (
                                 <TableRow
                                     key={role.roleId}
                                     hover
@@ -235,6 +280,7 @@ function RolesPage() {
                                     <TableCell align="right">
                                         <Tooltip title="Editar">
                                             <IconButton
+                                                aria-label={`Editar rol ${role.roleName}`}
                                                 onClick={() =>
                                                     handleOpenEdit(
                                                         role
@@ -247,6 +293,7 @@ function RolesPage() {
 
                                         <Tooltip title="Eliminar">
                                             <IconButton
+                                                aria-label={`Eliminar rol ${role.roleName}`}
                                                 color="error"
                                                 onClick={() =>
                                                     handleOpenDelete(
@@ -263,6 +310,37 @@ function RolesPage() {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            {!loading && roles.length === 0 && (
+                <Paper
+                    elevation={0}
+                    sx={{
+                        mt: 3,
+                        py: 6,
+                        px: 3,
+                        textAlign: "center",
+                        border: "1px dashed #CCD9E6",
+                        borderRadius: 3,
+                        bgcolor: "rgba(255,255,255,0.65)",
+                    }}
+                >
+                    <SecurityOutlinedIcon
+                        sx={{
+                            fontSize: 52,
+                            color: "#9AABBC",
+                            mb: 1.5,
+                        }}
+                    />
+
+                    <Typography fontWeight={700} color="#0F2742">
+                        Aún no hay roles
+                    </Typography>
+
+                    <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                        Los roles registrados aparecerán en esta sección.
+                    </Typography>
+                </Paper>
+            )}
 
             <Dialog
                 open={open}

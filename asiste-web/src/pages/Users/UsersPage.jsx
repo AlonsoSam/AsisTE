@@ -14,6 +14,7 @@ import {
     MenuItem,
     Paper,
     Select,
+    Skeleton,
     Table,
     TableBody,
     TableCell,
@@ -30,7 +31,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import SecurityIcon from "@mui/icons-material/Security";
-
+import PeopleIcon from "@mui/icons-material/People";
 import api from "../../services/api";
 
 function UsersPage() {
@@ -377,9 +378,17 @@ function UsersPage() {
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: {
+                        xs: "column",
+                        sm: "row",
+                    },
                     justifyContent:
                         "space-between",
-                    alignItems: "center",
+                    alignItems: {
+                        xs: "stretch",
+                        sm: "center",
+                    },
+                    gap: 2,
                     mb: 3,
                 }}
             >
@@ -400,6 +409,12 @@ function UsersPage() {
                     onClick={() =>
                         setOpen(true)
                     }
+                    sx={{
+                        alignSelf: {
+                            xs: "stretch",
+                            sm: "auto",
+                        },
+                    }}
                 >
                     Nuevo usuario
                 </Button>
@@ -408,7 +423,7 @@ function UsersPage() {
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2, borderRadius: 2 }}
                     onClose={() =>
                         setError("")
                     }
@@ -420,7 +435,7 @@ function UsersPage() {
             {success && (
                 <Alert
                     severity="success"
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2, borderRadius: 2 }}
                     onClose={() =>
                         setSuccess("")
                     }
@@ -436,10 +451,10 @@ function UsersPage() {
                     border:
                         "1px solid #E4EBF3",
                     borderRadius: 3,
-                    overflow: "hidden",
+                    overflowX: "auto",
                 }}
             >
-                <Table>
+                <Table sx={{ minWidth: 720 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>
@@ -461,8 +476,17 @@ function UsersPage() {
                     </TableHead>
 
                     <TableBody>
-                        {!loading &&
-                            users.map(
+                        {loading
+                            ? Array.from({ length: 4 }).map((_, index) => (
+                                <TableRow key={index}>
+                                    {Array.from({ length: 4 }).map((_, cellIndex) => (
+                                        <TableCell key={cellIndex}>
+                                            <Skeleton height={32} />
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                            : users.map(
                                 (user) => (
                                     <TableRow
                                         key={
@@ -494,6 +518,7 @@ function UsersPage() {
                                         <TableCell align="right">
                                             <Tooltip title="Editar usuario">
                                                 <IconButton
+                                                    aria-label={`Editar usuario ${user.username}`}
                                                     onClick={() =>
                                                         handleOpenEdit(
                                                             user
@@ -506,6 +531,7 @@ function UsersPage() {
 
                                             <Tooltip title="Cambiar contraseña">
                                                 <IconButton
+                                                    aria-label={`Cambiar contraseña de ${user.username}`}
                                                     color="primary"
                                                     onClick={() =>
                                                         handleOpenPassword(
@@ -519,6 +545,7 @@ function UsersPage() {
 
                                             <Tooltip title="Asignar rol">
                                                 <IconButton
+                                                    aria-label={`Asignar rol a ${user.username}`}
                                                     sx={{
                                                         color: "#6F5BD3",
                                                     }}
@@ -534,6 +561,7 @@ function UsersPage() {
 
                                             <Tooltip title="Eliminar">
                                                 <IconButton
+                                                    aria-label={`Eliminar usuario ${user.username}`}
                                                     color="error"
                                                     onClick={() =>
                                                         handleOpenDelete(
@@ -552,17 +580,36 @@ function UsersPage() {
                 </Table>
             </TableContainer>
 
-            {!loading &&
-                users.length === 0 && (
-                    <Typography
-                        textAlign="center"
-                        color="text.secondary"
-                        sx={{ mt: 3 }}
-                    >
-                        No hay usuarios
-                        registrados
+            {!loading && users.length === 0 && (
+                <Paper
+                    elevation={0}
+                    sx={{
+                        mt: 3,
+                        py: 6,
+                        px: 3,
+                        textAlign: "center",
+                        border: "1px dashed #CCD9E6",
+                        borderRadius: 3,
+                        bgcolor: "rgba(255,255,255,0.65)",
+                    }}
+                >
+                    <PeopleIcon
+                        sx={{
+                            fontSize: 52,
+                            color: "#9AABBC",
+                            mb: 1.5,
+                        }}
+                    />
+
+                    <Typography fontWeight={700} color="#0F2742">
+                        Aún no hay usuarios
                     </Typography>
-                )}
+
+                    <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                        Los usuarios registrados aparecerán en esta sección.
+                    </Typography>
+                </Paper>
+            )}
 
             {/* nuevo usuario */}
 

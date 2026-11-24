@@ -152,28 +152,27 @@ function MainLayout() {
                         }}
                     >
                         <Box
+                            component="img"
+                            src="/logoasiste.png"
+                            alt="Logo AsisTE"
                             sx={{
-                                width: 38,
-                                height: 38,
-                                borderRadius: 2.2,
+                                width: 44,
+                                height: 44,
+                                objectFit: "contain",
+                                borderRadius: "50%",
 
-                                background:
-                                    "linear-gradient(135deg, #2F80ED, #36C2B4)",
+                                filter:
+                                    "drop-shadow(0 4px 10px rgba(47,128,237,0.28))",
 
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
+                                transition:
+                                    "transform 0.2s ease",
 
-                                color: "#FFFFFF",
-                                fontWeight: 800,
-                                fontSize: 19,
-
-                                boxShadow:
-                                    "0 4px 12px rgba(47,128,237,0.35)",
+                                "&:hover": {
+                                    transform:
+                                        "scale(1.05)",
+                                },
                             }}
-                        >
-                            A
-                        </Box>
+                        />
 
                         <Typography
                             variant="h6"
@@ -255,7 +254,8 @@ function MainLayout() {
                             <ListItemButton
                                 key={item.text}
                                 selected={
-                                    selected === item.text
+                                    selected ===
+                                    item.text
                                 }
                                 onClick={() =>
                                     handleNavigate(item)
@@ -269,18 +269,26 @@ function MainLayout() {
                                         "all 0.2s ease",
 
                                     "&.Mui-selected": {
-                                        bgcolor: "#E8F2FF",
-                                        color: "#0F2742",
+                                        bgcolor:
+                                            "#E8F2FF",
+
+                                        color:
+                                            "#0F2742",
+
                                         boxShadow:
                                             "inset 4px 0 0 #2F80ED",
                                     },
 
-                                    "&.Mui-selected:hover": {
-                                        bgcolor: "#E8F2FF",
-                                    },
+                                    "&.Mui-selected:hover":
+                                        {
+                                            bgcolor:
+                                                "#E8F2FF",
+                                        },
 
                                     "&:hover": {
-                                        bgcolor: "#F3F7FB",
+                                        bgcolor:
+                                            "#F3F7FB",
+
                                         transform:
                                             "translateX(2px)",
                                     },
@@ -301,7 +309,9 @@ function MainLayout() {
                                 </ListItemIcon>
 
                                 <ListItemText
-                                    primary={item.text}
+                                    primary={
+                                        item.text
+                                    }
                                     primaryTypographyProps={{
                                         fontWeight:
                                             selected ===
@@ -326,9 +336,18 @@ function MainLayout() {
                             sx={{
                                 borderRadius: 2,
 
+                                transition:
+                                    "all 0.2s ease",
+
                                 "&:hover": {
-                                    bgcolor: "#FFF1F1",
-                                    color: "#D64545",
+                                    bgcolor:
+                                        "#FFF1F1",
+
+                                    color:
+                                        "#D64545",
+
+                                    transform:
+                                        "translateX(2px)",
                                 },
                             }}
                         >

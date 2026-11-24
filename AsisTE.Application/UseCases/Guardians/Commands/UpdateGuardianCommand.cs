@@ -21,10 +21,34 @@ internal class UpdateGuardianCommandHandler(IUnitOfWork unitOfWork)
         CancellationToken cancellationToken)
     {
         var guardian =
-            await unitOfWork.Guardians.GetByIdAsync(request.Id);
+            await unitOfWork.Guardians.GetByIdAsync(
+                request.Id
+            );
 
         if (guardian == null)
-            throw new KeyNotFoundException("Apoderado no encontrado");
+        {
+            throw new KeyNotFoundException(
+                "Apoderado no encontrado"
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Dni))
+        {
+            var existingGuardian =
+                await unitOfWork.Guardians.GetByDniAsync(
+                    request.Dni
+                );
+
+            if (
+                existingGuardian != null &&
+                existingGuardian.GuardianId != request.Id
+            )
+            {
+                throw new InvalidOperationException(
+                    "El DNI del apoderado ya está registrado"
+                );
+            }
+        }
 
         guardian.Dni = request.Dni;
         guardian.FirstName = request.FirstName;
@@ -32,7 +56,9 @@ internal class UpdateGuardianCommandHandler(IUnitOfWork unitOfWork)
         guardian.Phone = request.Phone;
         guardian.Email = request.Email;
 
-        await unitOfWork.Guardians.UpdateAsync(guardian);
+        await unitOfWork.Guardians.UpdateAsync(
+            guardian
+        );
 
         await unitOfWork.SaveChangesAsync();
     }

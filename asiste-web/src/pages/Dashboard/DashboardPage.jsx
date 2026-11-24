@@ -3,10 +3,8 @@ import { useEffect, useState } from "react";
 import {
     Alert,
     Box,
-    Card,
-    CardContent,
-    CircularProgress,
-    Grid,
+    Paper,
+    Skeleton,
     Typography,
 } from "@mui/material";
 
@@ -18,27 +16,27 @@ import DevicesIcon from "@mui/icons-material/Devices";
 import api from "../../services/api";
 
 function DashboardPage() {
-    const [summary, setSummary] = useState({
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const [stats, setStats] = useState({
         students: 0,
-        todayAttendances: 0,
+        attendancesToday: 0,
         pendingNotifications: 0,
         activeDevices: 0,
     });
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-
     const getToday = () => {
-        const today = new Date();
+        const now = new Date();
 
-        const year = today.getFullYear();
+        const year = now.getFullYear();
 
         const month = String(
-            today.getMonth() + 1
+            now.getMonth() + 1
         ).padStart(2, "0");
 
         const day = String(
-            today.getDate()
+            now.getDate()
         ).padStart(2, "0");
 
         return `${year}-${month}-${day}`;
@@ -75,11 +73,11 @@ function DashboardPage() {
                     (device) => device.active
                 ).length;
 
-            setSummary({
+            setStats({
                 students:
                 studentsResponse.data.length,
 
-                todayAttendances:
+                attendancesToday:
                 attendancesResponse.data.length,
 
                 pendingNotifications:
@@ -90,7 +88,7 @@ function DashboardPage() {
         } catch (err) {
             setError(
                 err.response?.data?.message ||
-                "No se pudo cargar el resumen del sistema"
+                "No se pudo cargar la información del dashboard"
             );
         } finally {
             setLoading(false);
@@ -104,182 +102,332 @@ function DashboardPage() {
     const cards = [
         {
             title: "Estudiantes",
-            value: summary.students,
+            value: stats.students,
             icon: <SchoolIcon />,
-            color: "#2F80ED",
-            background: "#E8F2FF",
+            iconColor: "#2F80ED",
+            iconBackground: "#E8F2FF",
         },
-
         {
             title: "Asistencias de hoy",
-            value: summary.todayAttendances,
+            value: stats.attendancesToday,
             icon: <FactCheckIcon />,
-            color: "#2FA36B",
-            background: "#E8F7EF",
+            iconColor: "#2FA36B",
+            iconBackground: "#E8F7EF",
         },
-
         {
             title: "Notificaciones pendientes",
-            value: summary.pendingNotifications,
+            value: stats.pendingNotifications,
             icon: <NotificationsIcon />,
-            color: "#F39C3D",
-            background: "#FFF4E5",
+            iconColor: "#F29A38",
+            iconBackground: "#FFF2E2",
         },
-
         {
             title: "Dispositivos activos",
-            value: summary.activeDevices,
+            value: stats.activeDevices,
             icon: <DevicesIcon />,
-            color: "#36A7B4",
-            background: "#E7F8FA",
+            iconColor: "#27A4B8",
+            iconBackground: "#E5F7FA",
         },
     ];
 
     return (
         <Box>
-            <Typography
-                variant="h4"
-                gutterBottom
-            >
-                Dashboard
-            </Typography>
+            <Box sx={{ mb: 4 }}>
+                <Typography
+                    variant="h4"
+                    sx={{
+                        fontWeight: 750,
+                        color: "#0F2742",
+                        mb: 0.7,
+                    }}
+                >
+                    Dashboard
+                </Typography>
 
-            <Typography
-                color="text.secondary"
-                sx={{ mb: 4 }}
-            >
-                Resumen general del sistema de asistencia
-            </Typography>
+                <Typography
+                    color="text.secondary"
+                >
+                    Resumen general del sistema de asistencia
+                </Typography>
+            </Box>
 
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 3 }}
+                    onClose={() => setError("")}
+                    sx={{
+                        mb: 3,
+                        borderRadius: 2,
+                    }}
                 >
                     {error}
                 </Alert>
             )}
 
-            {loading ? (
+            <Box
+                sx={{
+                    display: "grid",
+
+                    gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        xl: "repeat(4, 1fr)",
+                    },
+
+                    gap: 3,
+                }}
+            >
+                {loading
+                    ? Array.from({ length: 4 }).map(
+                        (_, index) => (
+                            <DashboardSkeleton
+                                key={index}
+                            />
+                        )
+                    )
+                    : cards.map((card) => (
+                        <StatCard
+                            key={card.title}
+                            {...card}
+                        />
+                    ))}
+            </Box>
+
+            {!loading && !error && (
                 <Box
                     sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        py: 6,
+                        mt: 4,
+                        display: "grid",
+
+                        gridTemplateColumns: {
+                            xs: "1fr",
+                            lg: "2fr 1fr",
+                        },
+
+                        gap: 3,
                     }}
                 >
-                    <CircularProgress />
-                </Box>
-            ) : (
-                <Grid container spacing={3}>
-                    {cards.map((card) => (
-                        <Grid
-                            key={card.title}
-                            size={{
-                                xs: 12,
-                                sm: 6,
-                                md: 3,
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 3,
+                            border:
+                                "1px solid #E4EBF3",
+                            borderRadius: 3,
+                            background:
+                                "linear-gradient(135deg, #FFFFFF 0%, #F9FBFE 100%)",
+                        }}
+                    >
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontWeight: 700,
+                                color: "#0F2742",
+                                mb: 1,
                             }}
                         >
-                            <Card
-                                elevation={0}
-                                sx={{
-                                    height: "100%",
+                            Estado del sistema
+                        </Typography>
 
-                                    border:
-                                        "1px solid #E4EBF3",
+                        <Typography
+                            color="text.secondary"
+                            sx={{
+                                lineHeight: 1.7,
+                            }}
+                        >
+                            AsisTE se encuentra conectado
+                            y listo para gestionar
+                            estudiantes, asistencias,
+                            notificaciones y dispositivos
+                            registrados.
+                        </Typography>
+                    </Paper>
 
-                                    borderRadius: 3,
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 3,
+                            border:
+                                "1px solid #E4EBF3",
+                            borderRadius: 3,
 
-                                    background:
-                                        "linear-gradient(135deg, #FFFFFF 0%, #FAFCFF 100%)",
+                            background:
+                                "linear-gradient(135deg, #0F2742 0%, #1F5E91 100%)",
 
-                                    boxShadow:
-                                        "0 8px 24px rgba(15,39,66,0.06)",
+                            color: "#FFFFFF",
+                        }}
+                    >
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontWeight: 700,
+                                mb: 1,
+                            }}
+                        >
+                            AsisTE
+                        </Typography>
 
-                                    transition:
-                                        "all 0.2s ease",
+                        <Typography
+                            sx={{
+                                color:
+                                    "rgba(255,255,255,0.78)",
 
-                                    "&:hover": {
-                                        transform:
-                                            "translateY(-4px)",
-
-                                        boxShadow:
-                                            "0 14px 30px rgba(15,39,66,0.10)",
-                                    },
-                                }}
-                            >
-                                <CardContent
-                                    sx={{
-                                        p: 2.5,
-                                    }}
-                                >
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent:
-                                                "space-between",
-                                            alignItems:
-                                                "center",
-                                        }}
-                                    >
-                                        <Box>
-                                            <Typography
-                                                color="text.secondary"
-                                                sx={{
-                                                    mb: 1,
-                                                    fontWeight:
-                                                        500,
-                                                }}
-                                            >
-                                                {card.title}
-                                            </Typography>
-
-                                            <Typography
-                                                variant="h4"
-                                                fontWeight={750}
-                                            >
-                                                {card.value}
-                                            </Typography>
-                                        </Box>
-
-                                        <Box
-                                            sx={{
-                                                width: 54,
-                                                height: 54,
-
-                                                borderRadius: 2.5,
-
-                                                bgcolor:
-                                                card.background,
-
-                                                color:
-                                                card.color,
-
-                                                display:
-                                                    "flex",
-
-                                                alignItems:
-                                                    "center",
-
-                                                justifyContent:
-                                                    "center",
-
-                                                "& svg": {
-                                                    fontSize: 28,
-                                                },
-                                            }}
-                                        >
-                                            {card.icon}
-                                        </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                                lineHeight: 1.7,
+                            }}
+                        >
+                            Control inteligente y
+                            centralizado de asistencia
+                            escolar.
+                        </Typography>
+                    </Paper>
+                </Box>
             )}
         </Box>
+    );
+}
+
+function StatCard({
+                      title,
+                      value,
+                      icon,
+                      iconColor,
+                      iconBackground,
+                  }) {
+    return (
+        <Paper
+            elevation={0}
+            tabIndex={0}
+            aria-label={`${title}: ${value}`}
+            sx={{
+                p: 2.7,
+
+                border:
+                    "1px solid #E4EBF3",
+
+                borderRadius: 3,
+
+                minHeight: 120,
+
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+
+                background:
+                    "rgba(255,255,255,0.92)",
+
+                transition:
+                    "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+
+                "&:hover": {
+                    transform:
+                        "translateY(-3px)",
+
+                    boxShadow:
+                        "0 12px 28px rgba(15,39,66,0.09)",
+
+                    borderColor:
+                        "#D4E2F0",
+                },
+
+                "&:focus-visible": {
+                    outline:
+                        "3px solid rgba(47,128,237,0.25)",
+
+                    outlineOffset: 2,
+                },
+            }}
+        >
+            <Box>
+                <Typography
+                    color="text.secondary"
+                    sx={{
+                        fontSize: 15,
+                        mb: 0.7,
+                    }}
+                >
+                    {title}
+                </Typography>
+
+                <Typography
+                    sx={{
+                        fontSize: 34,
+                        fontWeight: 750,
+                        color: "#0F2742",
+                        lineHeight: 1.1,
+                    }}
+                >
+                    {value}
+                </Typography>
+            </Box>
+
+            <Box
+                aria-hidden="true"
+                sx={{
+                    width: 58,
+                    height: 58,
+
+                    borderRadius: "50%",
+
+                    bgcolor:
+                    iconBackground,
+
+                    color:
+                    iconColor,
+
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    flexShrink: 0,
+
+                    "& svg": {
+                        fontSize: 29,
+                    },
+                }}
+            >
+                {icon}
+            </Box>
+        </Paper>
+    );
+}
+
+function DashboardSkeleton() {
+    return (
+        <Paper
+            elevation={0}
+            sx={{
+                p: 2.7,
+
+                border:
+                    "1px solid #E4EBF3",
+
+                borderRadius: 3,
+
+                minHeight: 120,
+
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+            }}
+        >
+            <Box sx={{ width: "60%" }}>
+                <Skeleton
+                    width="75%"
+                    height={24}
+                />
+
+                <Skeleton
+                    width={55}
+                    height={48}
+                />
+            </Box>
+
+            <Skeleton
+                variant="circular"
+                width={58}
+                height={58}
+            />
+        </Paper>
     );
 }
 

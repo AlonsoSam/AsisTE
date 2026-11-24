@@ -15,6 +15,7 @@ import {
     MenuItem,
     Paper,
     Select,
+    Skeleton,
     Table,
     TableBody,
     TableCell,
@@ -29,6 +30,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 
 import api from "../../services/api";
 
@@ -39,6 +41,7 @@ function AttendancesPage() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     const [open, setOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
@@ -214,6 +217,7 @@ function AttendancesPage() {
     const handleCreate = async () => {
         try {
             setError("");
+            setSuccess("");
 
             await api.post(
                 "/Attendances",
@@ -253,6 +257,8 @@ function AttendancesPage() {
             });
 
             setOpen(false);
+
+            setSuccess("Asistencia registrada correctamente");
 
             await loadAttendances();
         } catch (err) {
@@ -296,6 +302,7 @@ function AttendancesPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             const date =
                 selectedAttendance.attendanceDate;
@@ -320,6 +327,8 @@ function AttendancesPage() {
 
             setEditOpen(false);
             setSelectedAttendance(null);
+
+            setSuccess("Asistencia actualizada correctamente");
 
             await loadAttendances();
         } catch (err) {
@@ -413,9 +422,17 @@ function AttendancesPage() {
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: {
+                        xs: "column",
+                        sm: "row",
+                    },
                     justifyContent:
                         "space-between",
-                    alignItems: "center",
+                    alignItems: {
+                        xs: "stretch",
+                        sm: "center",
+                    },
+                    gap: 2,
                     mb: 3,
                 }}
             >
@@ -436,6 +453,12 @@ function AttendancesPage() {
                     onClick={() =>
                         setOpen(true)
                     }
+                    sx={{
+                        alignSelf: {
+                            xs: "stretch",
+                            sm: "auto",
+                        },
+                    }}
                 >
                     Nueva asistencia
                 </Button>
@@ -444,12 +467,22 @@ function AttendancesPage() {
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2, borderRadius: 2 }}
                     onClose={() =>
                         setError("")
                     }
                 >
                     {error}
+                </Alert>
+            )}
+
+            {success && (
+                <Alert
+                    severity="success"
+                    sx={{ mb: 2, borderRadius: 2 }}
+                    onClose={() => setSuccess("")}
+                >
+                    {success}
                 </Alert>
             )}
 
@@ -549,10 +582,10 @@ function AttendancesPage() {
                     border:
                         "1px solid #E4EBF3",
                     borderRadius: 3,
-                    overflow: "hidden",
+                    overflowX: "auto",
                 }}
             >
-                <Table>
+                <Table sx={{ minWidth: 900 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>
@@ -586,8 +619,17 @@ function AttendancesPage() {
                     </TableHead>
 
                     <TableBody>
-                        {!loading &&
-                            attendances.map(
+                        {loading
+                            ? Array.from({ length: 4 }).map((_, index) => (
+                                <TableRow key={index}>
+                                    {Array.from({ length: 7 }).map((_, cellIndex) => (
+                                        <TableCell key={cellIndex}>
+                                            <Skeleton height={32} />
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                            : attendances.map(
                                 (
                                     attendance
                                 ) => (
@@ -645,6 +687,7 @@ function AttendancesPage() {
                                         <TableCell align="right">
                                             <Tooltip title="Editar">
                                                 <IconButton
+                                                    aria-label={`Editar asistencia de ${getStudentName(attendance.studentId)}`}
                                                     onClick={() =>
                                                         handleOpenEdit(
                                                             attendance
@@ -662,18 +705,36 @@ function AttendancesPage() {
                 </Table>
             </TableContainer>
 
-            {!loading &&
-                attendances.length ===
-                0 && (
-                    <Typography
-                        textAlign="center"
-                        color="text.secondary"
-                        sx={{ mt: 3 }}
-                    >
-                        No hay asistencias para
-                        mostrar
+            {!loading && attendances.length === 0 && (
+                <Paper
+                    elevation={0}
+                    sx={{
+                        mt: 3,
+                        py: 6,
+                        px: 3,
+                        textAlign: "center",
+                        border: "1px dashed #CCD9E6",
+                        borderRadius: 3,
+                        bgcolor: "rgba(255,255,255,0.65)",
+                    }}
+                >
+                    <FactCheckOutlinedIcon
+                        sx={{
+                            fontSize: 52,
+                            color: "#9AABBC",
+                            mb: 1.5,
+                        }}
+                    />
+
+                    <Typography fontWeight={700} color="#0F2742">
+                        No hay asistencias para mostrar
                     </Typography>
-                )}
+
+                    <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                        Los registros de asistencia aparecerán en esta sección.
+                    </Typography>
+                </Paper>
+            )}
 
             <Dialog
                 open={open}

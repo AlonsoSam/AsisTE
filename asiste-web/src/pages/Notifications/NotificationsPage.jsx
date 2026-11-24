@@ -15,6 +15,7 @@ import {
     MenuItem,
     Paper,
     Select,
+    Skeleton,
     Table,
     TableBody,
     TableCell,
@@ -31,6 +32,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 
 import api from "../../services/api";
 import { isAdministrator } from "../../services/auth";
@@ -49,6 +51,9 @@ function NotificationsPage() {
         useState([]);
 
     const [error, setError] =
+        useState("");
+
+    const [success, setSuccess] =
         useState("");
 
     const [loading, setLoading] =
@@ -173,6 +178,7 @@ function NotificationsPage() {
     const handleCreate = async () => {
         try {
             setError("");
+            setSuccess("");
 
             await api.post(
                 "/Notifications",
@@ -197,6 +203,8 @@ function NotificationsPage() {
 
             setOpen(false);
 
+            setSuccess("Notificación registrada correctamente");
+
             await loadNotifications();
         } catch (err) {
             setError(
@@ -211,10 +219,13 @@ function NotificationsPage() {
     ) => {
         try {
             setError("");
+            setSuccess("");
 
             await api.put(
                 `/Notifications/${notification.notificationId}/send`
             );
+
+            setSuccess("Notificación marcada como enviada");
 
             await loadNotifications();
         } catch (err) {
@@ -230,10 +241,13 @@ function NotificationsPage() {
     ) => {
         try {
             setError("");
+            setSuccess("");
 
             await api.put(
                 `/Notifications/${notification.notificationId}/reset`
             );
+
+            setSuccess("Notificación restablecida a pendiente");
 
             await loadNotifications();
         } catch (err) {
@@ -342,6 +356,7 @@ function NotificationsPage() {
 
             try {
                 setError("");
+                setSuccess("");
 
                 await api.delete(
                     `/Notifications/${notificationToDelete.notificationId}`
@@ -352,6 +367,8 @@ function NotificationsPage() {
                 setNotificationToDelete(
                     null
                 );
+
+                setSuccess("Notificación eliminada correctamente");
 
                 await loadNotifications();
             } catch (err) {
@@ -393,9 +410,17 @@ function NotificationsPage() {
             <Box
                 sx={{
                     display: "flex",
+                    flexDirection: {
+                        xs: "column",
+                        sm: "row",
+                    },
                     justifyContent:
                         "space-between",
-                    alignItems: "center",
+                    alignItems: {
+                        xs: "stretch",
+                        sm: "center",
+                    },
+                    gap: 2,
                     mb: 3,
                 }}
             >
@@ -417,6 +442,12 @@ function NotificationsPage() {
                     onClick={() =>
                         setOpen(true)
                     }
+                    sx={{
+                        alignSelf: {
+                            xs: "stretch",
+                            sm: "auto",
+                        },
+                    }}
                 >
                     Nueva notificación
                 </Button>
@@ -425,12 +456,22 @@ function NotificationsPage() {
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2, borderRadius: 2 }}
                     onClose={() =>
                         setError("")
                     }
                 >
                     {error}
+                </Alert>
+            )}
+
+            {success && (
+                <Alert
+                    severity="success"
+                    sx={{ mb: 2, borderRadius: 2 }}
+                    onClose={() => setSuccess("")}
+                >
+                    {success}
                 </Alert>
             )}
 
@@ -561,10 +602,10 @@ function NotificationsPage() {
                     border:
                         "1px solid #E4EBF3",
                     borderRadius: 3,
-                    overflow: "hidden",
+                    overflowX: "auto",
                 }}
             >
-                <Table>
+                <Table sx={{ minWidth: 980 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>
@@ -594,8 +635,17 @@ function NotificationsPage() {
                     </TableHead>
 
                     <TableBody>
-                        {!loading &&
-                            notifications.map(
+                        {loading
+                            ? Array.from({ length: 4 }).map((_, index) => (
+                                <TableRow key={index}>
+                                    {Array.from({ length: 6 }).map((_, cellIndex) => (
+                                        <TableCell key={cellIndex}>
+                                            <Skeleton height={32} />
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                            : notifications.map(
                                 (
                                     notification
                                 ) => (
@@ -653,6 +703,7 @@ function NotificationsPage() {
                                                 "pendiente" && (
                                                     <Tooltip title="Marcar enviada">
                                                         <IconButton
+                                                            aria-label="Marcar notificación como enviada"
                                                             color="primary"
                                                             onClick={() =>
                                                                 handleMarkSent(
@@ -669,6 +720,7 @@ function NotificationsPage() {
                                                 "enviado" && (
                                                     <Tooltip title="Volver a pendiente">
                                                         <IconButton
+                                                            aria-label="Restablecer notificación a pendiente"
                                                             sx={{
                                                                 color: "#C97A17",
                                                             }}
@@ -686,6 +738,7 @@ function NotificationsPage() {
                                             {administrator && (
                                                 <Tooltip title="Eliminar">
                                                     <IconButton
+                                                        aria-label="Eliminar notificación"
                                                         color="error"
                                                         onClick={() =>
                                                             handleOpenDelete(
@@ -705,18 +758,36 @@ function NotificationsPage() {
                 </Table>
             </TableContainer>
 
-            {!loading &&
-                notifications.length ===
-                0 && (
-                    <Typography
-                        textAlign="center"
-                        color="text.secondary"
-                        sx={{ mt: 3 }}
-                    >
-                        No hay notificaciones
-                        para mostrar
+            {!loading && notifications.length === 0 && (
+                <Paper
+                    elevation={0}
+                    sx={{
+                        mt: 3,
+                        py: 6,
+                        px: 3,
+                        textAlign: "center",
+                        border: "1px dashed #CCD9E6",
+                        borderRadius: 3,
+                        bgcolor: "rgba(255,255,255,0.65)",
+                    }}
+                >
+                    <NotificationsNoneOutlinedIcon
+                        sx={{
+                            fontSize: 52,
+                            color: "#9AABBC",
+                            mb: 1.5,
+                        }}
+                    />
+
+                    <Typography fontWeight={700} color="#0F2742">
+                        No hay notificaciones para mostrar
                     </Typography>
-                )}
+
+                    <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                        Las notificaciones registradas aparecerán en esta sección.
+                    </Typography>
+                </Paper>
+            )}
 
             <Dialog
                 open={open}

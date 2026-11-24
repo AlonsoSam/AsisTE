@@ -19,17 +19,41 @@ internal class UpdateDeviceCommandHandler(IUnitOfWork unitOfWork)
         UpdateDeviceCommand request,
         CancellationToken cancellationToken)
     {
-        var device = await unitOfWork.Devices.GetByIdAsync(request.Id);
+        var device =
+            await unitOfWork.Devices.GetByIdAsync(
+                request.Id
+            );
 
         if (device == null)
-            throw new KeyNotFoundException("Dispositivo no encontrado");
+        {
+            throw new KeyNotFoundException(
+                "Dispositivo no encontrado"
+            );
+        }
+
+        var existingDevice =
+            await unitOfWork.Devices.GetByCodeAsync(
+                request.DeviceCode
+            );
+
+        if (
+            existingDevice != null &&
+            existingDevice.DeviceId != request.Id
+        )
+        {
+            throw new InvalidOperationException(
+                "El código del dispositivo ya está registrado"
+            );
+        }
 
         device.DeviceCode = request.DeviceCode;
         device.Name = request.Name;
         device.Location = request.Location;
         device.Active = request.Active;
 
-        await unitOfWork.Devices.UpdateAsync(device);
+        await unitOfWork.Devices.UpdateAsync(
+            device
+        );
 
         await unitOfWork.SaveChangesAsync();
     }

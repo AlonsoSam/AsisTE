@@ -6,6 +6,7 @@ import {
     Box,
     Button,
     Card,
+    CircularProgress,
     TextField,
     Typography,
 } from "@mui/material";
@@ -19,10 +20,17 @@ import api from "../../services/api";
 function LoginPage() {
     const navigate = useNavigate();
 
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [username, setUsername] =
+        useState("");
+
+    const [password, setPassword] =
+        useState("");
+
+    const [error, setError] =
+        useState("");
+
+    const [loading, setLoading] =
+        useState(false);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -104,6 +112,8 @@ function LoginPage() {
                         "0 22px 60px rgba(15,39,66,0.13)",
                 }}
             >
+                {/* panel izquierdo */}
+
                 <Box
                     sx={{
                         display: {
@@ -122,30 +132,58 @@ function LoginPage() {
 
                         background:
                             "linear-gradient(145deg, #0F2742 0%, #143C63 55%, #1F6FB2 100%)",
+
+                        position: "relative",
+                        overflow: "hidden",
+
+                        "&::after": {
+                            content: '""',
+                            position: "absolute",
+                            width: 260,
+                            height: 260,
+                            borderRadius: "50%",
+                            right: -110,
+                            top: -110,
+
+                            background:
+                                "rgba(54,194,180,0.08)",
+                        },
                     }}
                 >
-                    <Box>
+                    <Box
+                        sx={{
+                            position: "relative",
+                            zIndex: 1,
+                        }}
+                    >
                         <Box
+                            component="img"
+                            src="/logoasiste.png"
+                            alt="Logo AsisTE"
                             sx={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 2.5,
+                                width: 86,
+                                height: 86,
 
-                                background:
-                                    "linear-gradient(135deg, #2F80ED, #36C2B4)",
+                                objectFit:
+                                    "contain",
 
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
+                                borderRadius:
+                                    "50%",
 
-                                fontSize: 24,
-                                fontWeight: 800,
+                                mb: 2.5,
 
-                                mb: 3,
+                                filter:
+                                    "drop-shadow(0 8px 20px rgba(0,190,255,0.32))",
+
+                                transition:
+                                    "transform 0.25s ease",
+
+                                "&:hover": {
+                                    transform:
+                                        "scale(1.04)",
+                                },
                             }}
-                        >
-                            A
-                        </Box>
+                        />
 
                         <Typography
                             variant="h3"
@@ -169,8 +207,9 @@ function LoginPage() {
                                 lineHeight: 1.6,
                             }}
                         >
-                            Control inteligente y centralizado
-                            de asistencia escolar.
+                            Control inteligente y
+                            centralizado de asistencia
+                            escolar.
                         </Typography>
                     </Box>
 
@@ -178,10 +217,15 @@ function LoginPage() {
                         sx={{
                             display: "grid",
                             gap: 2,
+
+                            position: "relative",
+                            zIndex: 1,
                         }}
                     >
                         <Feature
-                            icon={<FactCheckIcon />}
+                            icon={
+                                <FactCheckIcon />
+                            }
                             text="Control de asistencias"
                         />
 
@@ -199,6 +243,8 @@ function LoginPage() {
                     </Box>
                 </Box>
 
+                {/* panel derecho */}
+
                 <Box
                     sx={{
                         display: "flex",
@@ -211,10 +257,40 @@ function LoginPage() {
                         },
                     }}
                 >
+                    {/* logo visible solo en móvil */}
+
+                    <Box
+                        component="img"
+                        src="/logoasiste.png"
+                        alt="Logo AsisTE"
+                        sx={{
+                            display: {
+                                xs: "block",
+                                md: "none",
+                            },
+
+                            width: 72,
+                            height: 72,
+
+                            objectFit:
+                                "contain",
+
+                            borderRadius:
+                                "50%",
+
+                            mb: 2,
+
+                            filter:
+                                "drop-shadow(0 6px 16px rgba(47,128,237,0.24))",
+                        }}
+                    />
+
                     <Typography
                         variant="h4"
                         sx={{
                             mb: 1,
+                            fontWeight: 700,
+                            color: "#0F2742",
                         }}
                     >
                         Bienvenido
@@ -226,14 +302,20 @@ function LoginPage() {
                             mb: 4,
                         }}
                     >
-                        Ingresa tus credenciales para acceder
-                        al sistema.
+                        Ingresa tus credenciales
+                        para acceder al sistema.
                     </Typography>
 
                     {error && (
                         <Alert
                             severity="error"
-                            sx={{ mb: 2 }}
+                            sx={{
+                                mb: 2,
+                                borderRadius: 2,
+                            }}
+                            onClose={() =>
+                                setError("")
+                            }
                         >
                             {error}
                         </Alert>
@@ -249,12 +331,14 @@ function LoginPage() {
                             value={username}
                             onChange={(event) =>
                                 setUsername(
-                                    event.target.value
+                                    event.target
+                                        .value
                                 )
                             }
                             margin="normal"
                             required
                             autoComplete="username"
+                            disabled={loading}
                         />
 
                         <TextField
@@ -264,12 +348,14 @@ function LoginPage() {
                             value={password}
                             onChange={(event) =>
                                 setPassword(
-                                    event.target.value
+                                    event.target
+                                        .value
                                 )
                             }
                             margin="normal"
                             required
                             autoComplete="current-password"
+                            disabled={loading}
                         />
 
                         <Button
@@ -284,15 +370,44 @@ function LoginPage() {
                                 background:
                                     "linear-gradient(90deg, #2F80ED, #2675D8)",
 
+                                boxShadow:
+                                    "0 7px 18px rgba(47,128,237,0.22)",
+
+                                transition:
+                                    "all 0.2s ease",
+
                                 "&:hover": {
                                     background:
                                         "linear-gradient(90deg, #2875D8, #1F67C0)",
+
+                                    transform:
+                                        "translateY(-1px)",
+
+                                    boxShadow:
+                                        "0 9px 22px rgba(47,128,237,0.28)",
                                 },
                             }}
                         >
-                            {loading
-                                ? "Ingresando..."
-                                : "Iniciar sesión"}
+                            {loading ? (
+                                <Box
+                                    sx={{
+                                        display:
+                                            "flex",
+                                        alignItems:
+                                            "center",
+                                        gap: 1.2,
+                                    }}
+                                >
+                                    <CircularProgress
+                                        size={18}
+                                        color="inherit"
+                                    />
+
+                                    Ingresando...
+                                </Box>
+                            ) : (
+                                "Iniciar sesión"
+                            )}
                         </Button>
                     </Box>
                 </Box>
@@ -311,6 +426,14 @@ function Feature({ icon, text }) {
 
                 color:
                     "rgba(255,255,255,0.88)",
+
+                transition:
+                    "transform 0.2s ease",
+
+                "&:hover": {
+                    transform:
+                        "translateX(4px)",
+                },
             }}
         >
             <Box

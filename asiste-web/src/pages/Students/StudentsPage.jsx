@@ -16,6 +16,7 @@ import {
     MenuItem,
     Paper,
     Select,
+    Skeleton,
     Table,
     TableBody,
     TableCell,
@@ -34,6 +35,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import HistoryIcon from "@mui/icons-material/History";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 
 import api from "../../services/api";
 import { isAdministrator } from "../../services/auth";
@@ -43,6 +45,7 @@ function StudentsPage() {
 
     const [students, setStudents] = useState([]);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(true);
 
     const [open, setOpen] = useState(false);
@@ -130,6 +133,7 @@ function StudentsPage() {
     const handleCreate = async () => {
         try {
             setError("");
+            setSuccess("");
 
             await api.post("/Students", {
                 dni: form.dni || null,
@@ -148,6 +152,10 @@ function StudentsPage() {
             });
 
             setOpen(false);
+
+            setSuccess(
+                "Estudiante registrado correctamente"
+            );
 
             await loadStudents();
         } catch (err) {
@@ -189,6 +197,7 @@ function StudentsPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             await api.put(
                 `/Students/${selectedStudent.studentId}`,
@@ -204,6 +213,10 @@ function StudentsPage() {
 
             setEditOpen(false);
             setSelectedStudent(null);
+
+            setSuccess(
+                "Estudiante actualizado correctamente"
+            );
 
             await loadStudents();
         } catch (err) {
@@ -226,6 +239,7 @@ function StudentsPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             await api.delete(
                 `/Students/${studentToDelete.studentId}`
@@ -233,6 +247,10 @@ function StudentsPage() {
 
             setDeleteOpen(false);
             setStudentToDelete(null);
+
+            setSuccess(
+                "Estudiante eliminado correctamente"
+            );
 
             await loadStudents();
         } catch (err) {
@@ -434,12 +452,14 @@ function StudentsPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             await api.post(
                 `/Students/${guardianStudent.studentId}/guardians`,
                 {
                     guardianId:
                     guardianForm.guardianId,
+
                     relationship:
                         guardianForm.relationship ||
                         null,
@@ -456,6 +476,10 @@ function StudentsPage() {
             );
 
             setStudentGuardians(response.data);
+
+            setSuccess(
+                "Apoderado asignado correctamente"
+            );
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -476,6 +500,7 @@ function StudentsPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             await api.delete(
                 `/Students/${guardianStudent.studentId}/guardians/${guardianId}`
@@ -487,6 +512,10 @@ function StudentsPage() {
                         guardian.guardianId !==
                         guardianId
                 )
+            );
+
+            setSuccess(
+                "Apoderado desvinculado correctamente"
             );
         } catch (err) {
             setError(
@@ -539,14 +568,32 @@ function StudentsPage() {
             <Box
                 sx={{
                     display: "flex",
+
+                    flexDirection: {
+                        xs: "column",
+                        sm: "row",
+                    },
+
                     justifyContent:
                         "space-between",
-                    alignItems: "center",
+
+                    alignItems: {
+                        xs: "stretch",
+                        sm: "center",
+                    },
+
+                    gap: 2,
                     mb: 3,
                 }}
             >
                 <Box>
-                    <Typography variant="h4">
+                    <Typography
+                        variant="h4"
+                        sx={{
+                            fontWeight: 700,
+                            color: "#0F2742",
+                        }}
+                    >
                         Estudiantes
                     </Typography>
 
@@ -562,6 +609,12 @@ function StudentsPage() {
                         onClick={() =>
                             setOpen(true)
                         }
+                        sx={{
+                            alignSelf: {
+                                xs: "stretch",
+                                sm: "auto",
+                            },
+                        }}
                     >
                         Nuevo estudiante
                     </Button>
@@ -571,12 +624,30 @@ function StudentsPage() {
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 2 }}
+                    sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                    }}
                     onClose={() =>
                         setError("")
                     }
                 >
                     {error}
+                </Alert>
+            )}
+
+            {success && (
+                <Alert
+                    severity="success"
+                    sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                    }}
+                    onClose={() =>
+                        setSuccess("")
+                    }
+                >
+                    {success}
                 </Alert>
             )}
 
@@ -586,31 +657,43 @@ function StudentsPage() {
                 sx={{
                     border:
                         "1px solid #E4EBF3",
+
                     borderRadius: 3,
-                    overflow: "hidden",
+
+                    overflowX: "auto",
                 }}
             >
-                <Table>
+                <Table
+                    sx={{
+                        minWidth: 1050,
+                    }}
+                >
                     <TableHead>
                         <TableRow>
                             <TableCell>
                                 DNI
                             </TableCell>
+
                             <TableCell>
                                 Nombres
                             </TableCell>
+
                             <TableCell>
                                 Apellidos
                             </TableCell>
+
                             <TableCell>
                                 Grado
                             </TableCell>
+
                             <TableCell>
                                 Sección
                             </TableCell>
+
                             <TableCell>
                                 Estado
                             </TableCell>
+
                             <TableCell align="right">
                                 Acciones
                             </TableCell>
@@ -618,8 +701,42 @@ function StudentsPage() {
                     </TableHead>
 
                     <TableBody>
-                        {!loading &&
-                            students.map(
+                        {loading
+                            ? Array.from({
+                                length: 4,
+                            }).map(
+                                (_, index) => (
+                                    <TableRow
+                                        key={
+                                            index
+                                        }
+                                    >
+                                        {Array.from(
+                                            {
+                                                length: 7,
+                                            }
+                                        ).map(
+                                            (
+                                                _,
+                                                cellIndex
+                                            ) => (
+                                                <TableCell
+                                                    key={
+                                                        cellIndex
+                                                    }
+                                                >
+                                                    <Skeleton
+                                                        height={
+                                                            32
+                                                        }
+                                                    />
+                                                </TableCell>
+                                            )
+                                        )}
+                                    </TableRow>
+                                )
+                            )
+                            : students.map(
                                 (student) => (
                                     <TableRow
                                         key={
@@ -667,11 +784,14 @@ function StudentsPage() {
                                                         student.active
                                                             ? "#E8F7EF"
                                                             : "#F2F2F2",
+
                                                     color:
                                                         student.active
                                                             ? "#2FA36B"
                                                             : "#667788",
-                                                    fontWeight: 600,
+
+                                                    fontWeight:
+                                                        600,
                                                 }}
                                             />
                                         </TableCell>
@@ -688,7 +808,8 @@ function StudentsPage() {
                                                     )
                                                 }
                                                 sx={{
-                                                    color: "#667788",
+                                                    color:
+                                                        "#667788",
                                                 }}
                                             >
                                                 Apoderados
@@ -727,6 +848,7 @@ function StudentsPage() {
                                                     <Tooltip title="Editar">
                                                         <IconButton
                                                             size="small"
+                                                            aria-label={`Editar ${student.firstName} ${student.lastName}`}
                                                             onClick={() =>
                                                                 handleOpenEdit(
                                                                     student
@@ -741,6 +863,7 @@ function StudentsPage() {
                                                         <IconButton
                                                             size="small"
                                                             color="error"
+                                                            aria-label={`Eliminar ${student.firstName} ${student.lastName}`}
                                                             onClick={() =>
                                                                 handleOpenDelete(
                                                                     student
@@ -762,13 +885,49 @@ function StudentsPage() {
 
             {!loading &&
                 students.length === 0 && (
-                    <Typography
-                        textAlign="center"
-                        color="text.secondary"
-                        sx={{ mt: 3 }}
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            mt: 3,
+                            py: 6,
+                            px: 3,
+
+                            textAlign:
+                                "center",
+
+                            border:
+                                "1px dashed #CCD9E6",
+
+                            borderRadius: 3,
+
+                            bgcolor:
+                                "rgba(255,255,255,0.65)",
+                        }}
                     >
-                        No hay estudiantes registrados
-                    </Typography>
+                        <SchoolOutlinedIcon
+                            sx={{
+                                fontSize: 52,
+                                color:
+                                    "#9AABBC",
+                                mb: 1.5,
+                            }}
+                        />
+
+                        <Typography
+                            fontWeight={700}
+                            color="#0F2742"
+                        >
+                            Aún no hay estudiantes
+                        </Typography>
+
+                        <Typography
+                            color="text.secondary"
+                            sx={{ mt: 0.5 }}
+                        >
+                            Los estudiantes registrados
+                            aparecerán en esta sección.
+                        </Typography>
+                    </Paper>
                 )}
 
             {administrator && (
@@ -808,6 +967,7 @@ function StudentsPage() {
                                 }
                                 fullWidth
                                 margin="normal"
+                                autoFocus
                             />
 
                             <TextField
@@ -863,6 +1023,10 @@ function StudentsPage() {
                                 variant="contained"
                                 onClick={
                                     handleCreate
+                                }
+                                disabled={
+                                    !form.firstName.trim() ||
+                                    !form.lastName.trim()
                                 }
                             >
                                 Guardar
@@ -971,6 +1135,7 @@ function StudentsPage() {
                                                 previous
                                             ) => ({
                                                 ...previous,
+
                                                 active:
                                                     event
                                                         .target
@@ -1007,6 +1172,10 @@ function StudentsPage() {
                                 onClick={
                                     handleUpdate
                                 }
+                                disabled={
+                                    !editForm.firstName.trim() ||
+                                    !editForm.lastName.trim()
+                                }
                             >
                                 Actualizar
                             </Button>
@@ -1019,6 +1188,7 @@ function StudentsPage() {
                             setDeleteOpen(
                                 false
                             );
+
                             setStudentToDelete(
                                 null
                             );
@@ -1032,8 +1202,7 @@ function StudentsPage() {
 
                         <DialogContent>
                             <Typography>
-                                ¿Deseas eliminar al
-                                estudiante{" "}
+                                ¿Deseas eliminar al estudiante{" "}
                                 <strong>
                                     {
                                         studentToDelete?.firstName
@@ -1050,10 +1219,9 @@ function StudentsPage() {
                                 color="text.secondary"
                                 sx={{ mt: 1 }}
                             >
-                                El registro solo
-                                podrá eliminarse si
-                                no tiene información
-                                relacionada.
+                                El registro solo podrá
+                                eliminarse si no tiene
+                                información relacionada.
                             </Typography>
                         </DialogContent>
 
@@ -1063,6 +1231,7 @@ function StudentsPage() {
                                     setDeleteOpen(
                                         false
                                     );
+
                                     setStudentToDelete(
                                         null
                                     );
@@ -1100,12 +1269,16 @@ function StudentsPage() {
                         <Box
                             sx={{
                                 mb: 3,
+
                                 borderLeft:
                                     "4px solid #2F80ED",
+
                                 pl: 2,
                             }}
                         >
-                            <Typography fontWeight={700}>
+                            <Typography
+                                fontWeight={700}
+                            >
                                 {
                                     historyStudent.firstName
                                 }{" "}
@@ -1119,10 +1292,14 @@ function StudentsPage() {
                     <Box
                         sx={{
                             display: "flex",
+
                             alignItems:
                                 "flex-end",
+
                             gap: 2,
+
                             flexWrap: "wrap",
+
                             mb: 3,
                         }}
                     >
@@ -1131,7 +1308,9 @@ function StudentsPage() {
                                 variant="body2"
                                 fontWeight={600}
                                 color="text.secondary"
-                                sx={{ mb: 0.7 }}
+                                sx={{
+                                    mb: 0.7,
+                                }}
                             >
                                 Fecha inicial
                             </Typography>
@@ -1149,6 +1328,7 @@ function StudentsPage() {
                                             previous
                                         ) => ({
                                             ...previous,
+
                                             startDate:
                                             event
                                                 .target
@@ -1165,7 +1345,9 @@ function StudentsPage() {
                                 variant="body2"
                                 fontWeight={600}
                                 color="text.secondary"
-                                sx={{ mb: 0.7 }}
+                                sx={{
+                                    mb: 0.7,
+                                }}
                             >
                                 Fecha final
                             </Typography>
@@ -1183,6 +1365,7 @@ function StudentsPage() {
                                             previous
                                         ) => ({
                                             ...previous,
+
                                             endDate:
                                             event
                                                 .target
@@ -1202,6 +1385,10 @@ function StudentsPage() {
                             onClick={
                                 handleFilterHistory
                             }
+                            disabled={
+                                !historyDates.startDate ||
+                                !historyDates.endDate
+                            }
                         >
                             Filtrar
                         </Button>
@@ -1220,8 +1407,10 @@ function StudentsPage() {
                         <Box
                             sx={{
                                 display: "flex",
+
                                 justifyContent:
                                     "center",
+
                                 py: 4,
                             }}
                         >
@@ -1237,6 +1426,10 @@ function StudentsPage() {
                         <TableContainer
                             component={Paper}
                             elevation={0}
+                            sx={{
+                                overflowX:
+                                    "auto",
+                            }}
                         >
                             <Table>
                                 <TableHead>
@@ -1244,12 +1437,15 @@ function StudentsPage() {
                                         <TableCell>
                                             Fecha
                                         </TableCell>
+
                                         <TableCell>
                                             Entrada
                                         </TableCell>
+
                                         <TableCell>
                                             Salida
                                         </TableCell>
+
                                         <TableCell>
                                             Estado
                                         </TableCell>
@@ -1303,6 +1499,7 @@ function StudentsPage() {
                                                             sx={{
                                                                 bgcolor:
                                                                 statusStyle.background,
+
                                                                 color:
                                                                 statusStyle.color,
                                                             }}
@@ -1355,7 +1552,16 @@ function StudentsPage() {
                     )}
 
                     {guardianLoading ? (
-                        <CircularProgress />
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent:
+                                    "center",
+                                py: 3,
+                            }}
+                        >
+                            <CircularProgress />
+                        </Box>
                     ) : (
                         <>
                             {studentGuardians.length ===
@@ -1383,7 +1589,12 @@ function StudentsPage() {
                                             sx={{
                                                 border:
                                                     "1px solid #E4EBF3",
+
+                                                borderRadius:
+                                                    2,
+
                                                 p: 2,
+
                                                 mb: 1.5,
                                             }}
                                         >
@@ -1412,6 +1623,9 @@ function StudentsPage() {
                                                 <Button
                                                     color="error"
                                                     size="small"
+                                                    sx={{
+                                                        mt: 1,
+                                                    }}
                                                     onClick={() =>
                                                         handleRemoveGuardian(
                                                             guardian.guardianId
@@ -1449,6 +1663,7 @@ function StudentsPage() {
                                                         previous
                                                     ) => ({
                                                         ...previous,
+
                                                         guardianId:
                                                         event
                                                             .target
@@ -1494,6 +1709,7 @@ function StudentsPage() {
                                                     previous
                                                 ) => ({
                                                     ...previous,
+
                                                     relationship:
                                                     event
                                                         .target
@@ -1540,37 +1756,187 @@ function StudentsPage() {
                 onClose={handleCloseAi}
                 fullWidth
                 maxWidth="sm"
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        overflow: "hidden",
+                    },
+                }}
             >
-                <DialogTitle>
-                    Resumen de asistencia
+                <DialogTitle
+                    sx={{
+                        pb: 1.5,
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: 42,
+                                height: 42,
+                                borderRadius: 2,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background:
+                                    "linear-gradient(135deg, #E8F2FF 0%, #E8F7EF 100%)",
+                            }}
+                        >
+                            <AutoAwesomeIcon
+                                sx={{
+                                    color: "#2F80ED",
+                                    fontSize: 23,
+                                }}
+                            />
+                        </Box>
+
+                        <Box>
+                            <Typography
+                                fontWeight={700}
+                                fontSize={20}
+                                color="#0F2742"
+                            >
+                                Resumen inteligente de asistencia
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Análisis automático del historial del estudiante
+                            </Typography>
+                        </Box>
+                    </Box>
                 </DialogTitle>
 
                 <DialogContent>
                     {aiStudent && (
-                        <Typography
-                            fontWeight={700}
-                            sx={{ mb: 2 }}
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                mt: 1,
+                                mb: 2,
+                                p: 2,
+                                border: "1px solid #E4EBF3",
+                                borderRadius: 2,
+                                bgcolor: "#F8FAFD",
+                            }}
                         >
-                            {aiStudent.firstName}{" "}
-                            {aiStudent.lastName}
-                        </Typography>
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                            >
+                                Estudiante
+                            </Typography>
+
+                            <Typography
+                                fontWeight={700}
+                                color="#0F2742"
+                            >
+                                {aiStudent.firstName}{" "}
+                                {aiStudent.lastName}
+                            </Typography>
+                        </Paper>
                     )}
 
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.2,
+                            px: 2,
+                            py: 1.25,
+                            mb: 2.5,
+                            borderRadius: 2,
+                            bgcolor: "rgba(16,163,127,0.08)",
+                            border: "1px solid rgba(16,163,127,0.18)",
+                        }}
+                    >
+                        <AutoAwesomeIcon
+                            sx={{
+                                color: "#10A37F",
+                                fontSize: 21,
+                            }}
+                        />
+
+                        <Box>
+                            <Typography
+                                variant="body2"
+                                fontWeight={700}
+                                color="#153E36"
+                            >
+                                Generado con OpenAI
+                            </Typography>
+
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                            >
+                                GPT-6 Luna
+                            </Typography>
+                        </Box>
+                    </Box>
+
                     {aiLoading ? (
-                        <CircularProgress />
+                        <Box
+                            sx={{
+                                py: 5,
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 2,
+                            }}
+                        >
+                            <CircularProgress />
+
+                            <Typography
+                                color="text.secondary"
+                                variant="body2"
+                            >
+                                Analizando registros de asistencia...
+                            </Typography>
+                        </Box>
                     ) : (
-                        <Typography>
-                            {aiSummary.replaceAll(
-                                "**",
-                                ""
-                            )}
-                        </Typography>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 2.5,
+                                border: "1px solid #E4EBF3",
+                                borderRadius: 2,
+                                bgcolor: "#FFFFFF",
+                            }}
+                        >
+                            <Typography
+                                sx={{
+                                    lineHeight: 1.8,
+                                    whiteSpace: "pre-line",
+                                    color: "#24364B",
+                                }}
+                            >
+                                {aiSummary.replaceAll(
+                                    "**",
+                                    ""
+                                )}
+                            </Typography>
+                        </Paper>
                     )}
                 </DialogContent>
 
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        px: 3,
+                        pb: 2.5,
+                    }}
+                >
                     <Button
                         onClick={handleCloseAi}
+                        disabled={aiLoading}
                     >
                         Cerrar
                     </Button>

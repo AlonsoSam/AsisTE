@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
+
 import LoginPage from "../pages/Login/LoginPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 import StudentsPage from "../pages/Students/StudentsPage";
@@ -19,10 +20,16 @@ import RolesPage from "../pages/Roles/RolesPage";
 import { isAdministrator } from "../services/auth";
 
 function ProtectedRoute({ children }) {
-    const token = localStorage.getItem("token");
+    const token =
+        localStorage.getItem("token");
 
     if (!token) {
-        return <Navigate to="/" replace />;
+        return (
+            <Navigate
+                to="/"
+                replace
+            />
+        );
     }
 
     return children;
@@ -30,7 +37,28 @@ function ProtectedRoute({ children }) {
 
 function AdminRoute({ children }) {
     if (!isAdministrator()) {
-        return <Navigate to="/dashboard" replace />;
+        return (
+            <Navigate
+                to="/dashboard"
+                replace
+            />
+        );
+    }
+
+    return children;
+}
+
+function PublicRoute({ children }) {
+    const token =
+        localStorage.getItem("token");
+
+    if (token) {
+        return (
+            <Navigate
+                to="/dashboard"
+                replace
+            />
+        );
     }
 
     return children;
@@ -42,7 +70,11 @@ function AppRoutes() {
             <Routes>
                 <Route
                     path="/"
-                    element={<LoginPage />}
+                    element={
+                        <PublicRoute>
+                            <LoginPage />
+                        </PublicRoute>
+                    }
                 />
 
                 <Route
@@ -54,32 +86,44 @@ function AppRoutes() {
                 >
                     <Route
                         path="/dashboard"
-                        element={<DashboardPage />}
+                        element={
+                            <DashboardPage />
+                        }
                     />
 
                     <Route
                         path="/students"
-                        element={<StudentsPage />}
+                        element={
+                            <StudentsPage />
+                        }
                     />
 
                     <Route
                         path="/guardians"
-                        element={<GuardiansPage />}
+                        element={
+                            <GuardiansPage />
+                        }
                     />
 
                     <Route
                         path="/attendances"
-                        element={<AttendancesPage />}
+                        element={
+                            <AttendancesPage />
+                        }
                     />
 
                     <Route
                         path="/devices"
-                        element={<DevicesPage />}
+                        element={
+                            <DevicesPage />
+                        }
                     />
 
                     <Route
                         path="/notifications"
-                        element={<NotificationsPage />}
+                        element={
+                            <NotificationsPage />
+                        }
                     />
 
                     <Route
@@ -100,6 +144,16 @@ function AppRoutes() {
                         }
                     />
                 </Route>
+
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to="/dashboard"
+                            replace
+                        />
+                    }
+                />
             </Routes>
         </BrowserRouter>
     );

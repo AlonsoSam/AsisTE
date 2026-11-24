@@ -15,6 +15,7 @@ import {
     MenuItem,
     Paper,
     Select,
+    Skeleton,
     Table,
     TableBody,
     TableCell,
@@ -29,6 +30,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import DevicesOtherOutlinedIcon from "@mui/icons-material/DevicesOtherOutlined";
 
 import api from "../../services/api";
 import { isAdministrator } from "../../services/auth";
@@ -36,13 +38,26 @@ import { isAdministrator } from "../../services/auth";
 function DevicesPage() {
     const administrator = isAdministrator();
 
-    const [devices, setDevices] = useState([]);
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [devices, setDevices] =
+        useState([]);
 
-    const [open, setOpen] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
-    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [error, setError] =
+        useState("");
+
+    const [success, setSuccess] =
+        useState("");
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [open, setOpen] =
+        useState(false);
+
+    const [editOpen, setEditOpen] =
+        useState(false);
+
+    const [deleteOpen, setDeleteOpen] =
+        useState(false);
 
     const [selectedDevice, setSelectedDevice] =
         useState(null);
@@ -87,7 +102,8 @@ function DevicesPage() {
     }, []);
 
     const handleChange = (event) => {
-        const { name, value } = event.target;
+        const { name, value } =
+            event.target;
 
         setForm((previous) => ({
             ...previous,
@@ -96,7 +112,8 @@ function DevicesPage() {
     };
 
     const handleEditChange = (event) => {
-        const { name, value } = event.target;
+        const { name, value } =
+            event.target;
 
         setEditForm((previous) => ({
             ...previous,
@@ -107,13 +124,18 @@ function DevicesPage() {
     const handleCreate = async () => {
         try {
             setError("");
+            setSuccess("");
 
             await api.post("/Devices", {
                 deviceCode:
                 form.deviceCode,
-                name: form.name,
+
+                name:
+                form.name,
+
                 location:
-                    form.location || null,
+                    form.location ||
+                    null,
             });
 
             setForm({
@@ -124,6 +146,10 @@ function DevicesPage() {
 
             setOpen(false);
 
+            setSuccess(
+                "Dispositivo registrado correctamente"
+            );
+
             await loadDevices();
         } catch (err) {
             setError(
@@ -133,16 +159,23 @@ function DevicesPage() {
         }
     };
 
-    const handleOpenEdit = (device) => {
+    const handleOpenEdit = (
+        device
+    ) => {
         setSelectedDevice(device);
 
         setEditForm({
             deviceCode:
                 device.deviceCode || "",
-            name: device.name || "",
+
+            name:
+                device.name || "",
+
             location:
                 device.location || "",
-            active: device.active,
+
+            active:
+            device.active,
         });
 
         setEditOpen(true);
@@ -155,22 +188,32 @@ function DevicesPage() {
 
         try {
             setError("");
+            setSuccess("");
 
             await api.put(
                 `/Devices/${selectedDevice.deviceId}`,
                 {
                     deviceCode:
                     editForm.deviceCode,
-                    name: editForm.name,
+
+                    name:
+                    editForm.name,
+
                     location:
                         editForm.location ||
                         null,
-                    active: editForm.active,
+
+                    active:
+                    editForm.active,
                 }
             );
 
             setEditOpen(false);
             setSelectedDevice(null);
+
+            setSuccess(
+                "Dispositivo actualizado correctamente"
+            );
 
             await loadDevices();
         } catch (err) {
@@ -181,51 +224,78 @@ function DevicesPage() {
         }
     };
 
-    const handleOpenDelete = (device) => {
+    const handleOpenDelete = (
+        device
+    ) => {
         setDeviceToDelete(device);
         setDeleteOpen(true);
     };
 
-    const handleConfirmDelete = async () => {
-        if (!deviceToDelete) {
-            return;
-        }
+    const handleConfirmDelete =
+        async () => {
+            if (!deviceToDelete) {
+                return;
+            }
 
-        try {
-            setError("");
+            try {
+                setError("");
+                setSuccess("");
 
-            await api.delete(
-                `/Devices/${deviceToDelete.deviceId}`
-            );
+                await api.delete(
+                    `/Devices/${deviceToDelete.deviceId}`
+                );
 
-            setDeleteOpen(false);
-            setDeviceToDelete(null);
+                setDeleteOpen(false);
+                setDeviceToDelete(null);
 
-            await loadDevices();
-        } catch (err) {
-            setDeleteOpen(false);
-            setDeviceToDelete(null);
+                setSuccess(
+                    "Dispositivo eliminado correctamente"
+                );
 
-            setError(
-                err.response?.data?.message ||
-                "No se pudo eliminar el dispositivo"
-            );
-        }
-    };
+                await loadDevices();
+            } catch (err) {
+                setDeleteOpen(false);
+                setDeviceToDelete(null);
+
+                setError(
+                    err.response?.data
+                        ?.message ||
+                    "No se pudo eliminar el dispositivo"
+                );
+            }
+        };
 
     return (
         <Box>
             <Box
                 sx={{
                     display: "flex",
+
+                    flexDirection: {
+                        xs: "column",
+                        sm: "row",
+                    },
+
                     justifyContent:
                         "space-between",
-                    alignItems: "center",
+
+                    alignItems: {
+                        xs: "stretch",
+                        sm: "center",
+                    },
+
+                    gap: 2,
                     mb: 3,
                 }}
             >
                 <Box>
-                    <Typography variant="h4">
+                    <Typography
+                        variant="h4"
+                        sx={{
+                            fontWeight: 700,
+                            color: "#0F2742",
+                        }}
+                    >
                         Dispositivos
                     </Typography>
 
@@ -241,6 +311,12 @@ function DevicesPage() {
                         onClick={() =>
                             setOpen(true)
                         }
+                        sx={{
+                            alignSelf: {
+                                xs: "stretch",
+                                sm: "auto",
+                            },
+                        }}
                     >
                         Nuevo dispositivo
                     </Button>
@@ -250,12 +326,30 @@ function DevicesPage() {
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 2 }}
+                    sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                    }}
                     onClose={() =>
                         setError("")
                     }
                 >
                     {error}
+                </Alert>
+            )}
+
+            {success && (
+                <Alert
+                    severity="success"
+                    sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                    }}
+                    onClose={() =>
+                        setSuccess("")
+                    }
+                >
+                    {success}
                 </Alert>
             )}
 
@@ -265,22 +359,31 @@ function DevicesPage() {
                 sx={{
                     border:
                         "1px solid #E4EBF3",
+
                     borderRadius: 3,
-                    overflow: "hidden",
+
+                    overflowX: "auto",
                 }}
             >
-                <Table>
+                <Table
+                    sx={{
+                        minWidth: 720,
+                    }}
+                >
                     <TableHead>
                         <TableRow>
                             <TableCell>
                                 Código
                             </TableCell>
+
                             <TableCell>
                                 Nombre
                             </TableCell>
+
                             <TableCell>
                                 Ubicación
                             </TableCell>
+
                             <TableCell>
                                 Estado
                             </TableCell>
@@ -294,8 +397,45 @@ function DevicesPage() {
                     </TableHead>
 
                     <TableBody>
-                        {!loading &&
-                            devices.map(
+                        {loading
+                            ? Array.from({
+                                length: 3,
+                            }).map(
+                                (_, index) => (
+                                    <TableRow
+                                        key={
+                                            index
+                                        }
+                                    >
+                                        {Array.from(
+                                            {
+                                                length:
+                                                    administrator
+                                                        ? 5
+                                                        : 4,
+                                            }
+                                        ).map(
+                                            (
+                                                _,
+                                                cellIndex
+                                            ) => (
+                                                <TableCell
+                                                    key={
+                                                        cellIndex
+                                                    }
+                                                >
+                                                    <Skeleton
+                                                        height={
+                                                            32
+                                                        }
+                                                    />
+                                                </TableCell>
+                                            )
+                                        )}
+                                    </TableRow>
+                                )
+                            )
+                            : devices.map(
                                 (device) => (
                                     <TableRow
                                         key={
@@ -333,11 +473,14 @@ function DevicesPage() {
                                                         device.active
                                                             ? "#E8F7EF"
                                                             : "#F2F2F2",
+
                                                     color:
                                                         device.active
                                                             ? "#2FA36B"
                                                             : "#667788",
-                                                    fontWeight: 600,
+
+                                                    fontWeight:
+                                                        600,
                                                 }}
                                             />
                                         </TableCell>
@@ -346,6 +489,7 @@ function DevicesPage() {
                                             <TableCell align="right">
                                                 <Tooltip title="Editar">
                                                     <IconButton
+                                                        aria-label={`Editar ${device.name}`}
                                                         onClick={() =>
                                                             handleOpenEdit(
                                                                 device
@@ -359,6 +503,7 @@ function DevicesPage() {
                                                 <Tooltip title="Eliminar">
                                                     <IconButton
                                                         color="error"
+                                                        aria-label={`Eliminar ${device.name}`}
                                                         onClick={() =>
                                                             handleOpenDelete(
                                                                 device
@@ -376,6 +521,57 @@ function DevicesPage() {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            {!loading &&
+                devices.length === 0 && (
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            mt: 3,
+                            py: 6,
+                            px: 3,
+
+                            textAlign:
+                                "center",
+
+                            border:
+                                "1px dashed #CCD9E6",
+
+                            borderRadius: 3,
+
+                            bgcolor:
+                                "rgba(255,255,255,0.65)",
+                        }}
+                    >
+                        <DevicesOtherOutlinedIcon
+                            sx={{
+                                fontSize: 52,
+
+                                color:
+                                    "#9AABBC",
+
+                                mb: 1.5,
+                            }}
+                        />
+
+                        <Typography
+                            fontWeight={700}
+                            color="#0F2742"
+                        >
+                            Aún no hay dispositivos
+                        </Typography>
+
+                        <Typography
+                            color="text.secondary"
+                            sx={{
+                                mt: 0.5,
+                            }}
+                        >
+                            Los lectores registrados
+                            aparecerán en esta sección.
+                        </Typography>
+                    </Paper>
+                )}
 
             {administrator && (
                 <>
@@ -403,6 +599,7 @@ function DevicesPage() {
                                 }
                                 fullWidth
                                 margin="normal"
+                                autoFocus
                             />
 
                             <TextField
@@ -445,6 +642,10 @@ function DevicesPage() {
                                 variant="contained"
                                 onClick={
                                     handleCreate
+                                }
+                                disabled={
+                                    !form.deviceCode.trim() ||
+                                    !form.name.trim()
                                 }
                             >
                                 Guardar
@@ -527,6 +728,7 @@ function DevicesPage() {
                                                 previous
                                             ) => ({
                                                 ...previous,
+
                                                 active:
                                                     event
                                                         .target
@@ -563,6 +765,10 @@ function DevicesPage() {
                                 onClick={
                                     handleUpdate
                                 }
+                                disabled={
+                                    !editForm.deviceCode.trim() ||
+                                    !editForm.name.trim()
+                                }
                             >
                                 Actualizar
                             </Button>
@@ -575,6 +781,7 @@ function DevicesPage() {
                             setDeleteOpen(
                                 false
                             );
+
                             setDeviceToDelete(
                                 null
                             );
@@ -601,12 +808,13 @@ function DevicesPage() {
                             <Typography
                                 variant="body2"
                                 color="text.secondary"
-                                sx={{ mt: 1 }}
+                                sx={{
+                                    mt: 1,
+                                }}
                             >
-                                El registro solo
-                                podrá eliminarse si
-                                no tiene asistencias
-                                relacionadas.
+                                El registro solo podrá
+                                eliminarse si no tiene
+                                asistencias relacionadas.
                             </Typography>
                         </DialogContent>
 
@@ -616,6 +824,7 @@ function DevicesPage() {
                                     setDeleteOpen(
                                         false
                                     );
+
                                     setDeviceToDelete(
                                         null
                                     );
