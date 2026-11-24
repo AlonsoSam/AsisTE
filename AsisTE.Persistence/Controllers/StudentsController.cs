@@ -44,6 +44,23 @@ public class StudentsController(IMediator mediator) : ControllerBase
 
         return Ok(guardians);
     }
+    
+    [HttpGet("{studentId}/ai-summary")]
+    public async Task<IActionResult> GetAiSummary(
+        Guid studentId)
+    {
+        var summary = await mediator.Send(
+            new GetStudentAttendanceAiSummaryQuery
+            {
+                StudentId = studentId
+            }
+        );
+
+        return Ok(new
+        {
+            summary
+        });
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create(AddStudentCommand command)

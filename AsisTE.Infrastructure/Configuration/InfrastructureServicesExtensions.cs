@@ -8,6 +8,8 @@ using AsisTE.Domain.Ports.UnitOfWork;
 using AsisTE.Infrastructure.Adapters.UnitOfWork;
 using AsisTE.Application.Ports.Services;
 using AsisTE.Infrastructure.Adapters.Services;
+using AsisTE.Application.Ports.Services;
+using AsisTE.Infrastructure.Adapters.Services;
 
 namespace AsisTE.Infrastructure.Configuration;
 
@@ -36,6 +38,7 @@ public static class InfrastructureServicesExtensions
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddHttpClient<IAiService, OpenAiService>();
 
         return services;
     }

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+
 import {
     Alert,
     Box,
     Button,
+    CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
@@ -19,6 +21,7 @@ import {
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import api from "../../services/api";
 
@@ -28,6 +31,11 @@ function StudentsPage() {
     const [loading, setLoading] = useState(true);
 
     const [open, setOpen] = useState(false);
+
+    const [aiOpen, setAiOpen] = useState(false);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiSummary, setAiSummary] = useState("");
+    const [aiStudent, setAiStudent] = useState(null);
 
     const [form, setForm] = useState({
         dni: "",
@@ -99,6 +107,40 @@ function StudentsPage() {
         }
     };
 
+    const handleAiSummary = async (student) => {
+        try {
+            setError("");
+
+            setAiStudent(student);
+            setAiSummary("");
+            setAiLoading(true);
+            setAiOpen(true);
+
+            const response = await api.get(
+                `/Students/${student.studentId}/ai-summary`
+            );
+
+            setAiSummary(response.data.summary);
+        } catch (err) {
+            setAiSummary(
+                err.response?.data?.message ||
+                "No se pudo generar el resumen con IA"
+            );
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    const handleCloseAi = () => {
+        if (aiLoading) {
+            return;
+        }
+
+        setAiOpen(false);
+        setAiSummary("");
+        setAiStudent(null);
+    };
+
     return (
         <Box>
             <Box
@@ -110,7 +152,10 @@ function StudentsPage() {
                 }}
             >
                 <Box>
-                    <Typography variant="h4" fontWeight="bold">
+                    <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                    >
                         Estudiantes
                     </Typography>
 
@@ -129,7 +174,10 @@ function StudentsPage() {
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert
+                    severity="error"
+                    sx={{ mb: 2 }}
+                >
                     {error}
                 </Alert>
             )}
@@ -144,13 +192,19 @@ function StudentsPage() {
                             <TableCell>Grado</TableCell>
                             <TableCell>Sección</TableCell>
                             <TableCell>Estado</TableCell>
+
+                            <TableCell align="right">
+                                IA
+                            </TableCell>
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {!loading &&
                             students.map((student) => (
-                                <TableRow key={student.studentId}>
+                                <TableRow
+                                    key={student.studentId}
+                                >
                                     <TableCell>
                                         {student.dni || "-"}
                                     </TableCell>
@@ -176,21 +230,38 @@ function StudentsPage() {
                                             ? "Activo"
                                             : "Inactivo"}
                                     </TableCell>
+
+                                    <TableCell align="right">
+                                        <Button
+                                            size="small"
+                                            startIcon={
+                                                <AutoAwesomeIcon />
+                                            }
+                                            onClick={() =>
+                                                handleAiSummary(
+                                                    student
+                                                )
+                                            }
+                                        >
+                                            Analizar
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                     </TableBody>
                 </Table>
             </TableContainer>
 
-            {!loading && students.length === 0 && (
-                <Typography
-                    textAlign="center"
-                    color="text.secondary"
-                    sx={{ mt: 3 }}
-                >
-                    No hay estudiantes registrados
-                </Typography>
-            )}
+            {!loading &&
+                students.length === 0 && (
+                    <Typography
+                        textAlign="center"
+                        color="text.secondary"
+                        sx={{ mt: 3 }}
+                    >
+                        No hay estudiantes registrados
+                    </Typography>
+                )}
 
             <Dialog
                 open={open}
@@ -252,7 +323,9 @@ function StudentsPage() {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={() => setOpen(false)}>
+                    <Button
+                        onClick={() => setOpen(false)}
+                    >
                         Cancelar
                     </Button>
 
@@ -265,6 +338,66 @@ function StudentsPage() {
                         }
                     >
                         Guardar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={aiOpen}
+                onClose={handleCloseAi}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>
+                    Análisis de asistencia con IA
+                </DialogTitle>
+
+                <DialogContent>
+                    {aiStudent && (
+                        <Typography
+                            fontWeight="bold"
+                            sx={{ mb: 2 }}
+                        >
+                            {aiStudent.firstName}{" "}
+                            {aiStudent.lastName}
+                        </Typography>
+                    )}
+
+                    {aiLoading ? (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 2,
+                                py: 5,
+                            }}
+                        >
+                            <CircularProgress />
+
+                            <Typography color="text.secondary">
+                                Analizando asistencia...
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <Typography
+                            sx={{
+                                whiteSpace: "pre-line",
+                                lineHeight: 1.7,
+                            }}
+                        >
+                            {aiSummary}
+                        </Typography>
+                    )}
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={handleCloseAi}
+                        disabled={aiLoading}
+                    >
+                        Cerrar
                     </Button>
                 </DialogActions>
             </Dialog>
