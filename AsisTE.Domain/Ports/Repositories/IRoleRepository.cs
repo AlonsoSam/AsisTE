@@ -11,4 +11,6 @@ public interface IRoleRepository
     Task<bool> UserHasRoleAsync(Guid userId, Guid roleId);
     Task AddAsync(Role role);
     Task AssignRoleAsync(UserRole userRole);
+    Task UpdateAsync(Role role);
+    Task DeleteAsync(Role role);
 }

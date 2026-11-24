@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AsisTE.Infrastructure.Repositories;
 
-public class NotificationRepository(AsisteContext context) : INotificationRepository
+public class NotificationRepository(
+    AsisteContext context)
+    : INotificationRepository
 {
     public async Task<List<Notification>> GetAllAsync()
     {
@@ -17,10 +19,13 @@ public class NotificationRepository(AsisteContext context) : INotificationReposi
     public async Task<Notification?> GetByIdAsync(Guid id)
     {
         return await context.Notifications
-            .FirstOrDefaultAsync(x => x.NotificationId == id);
+            .FirstOrDefaultAsync(
+                x => x.NotificationId == id
+            );
     }
 
-    public async Task<List<Notification>> GetByGuardianIdAsync(Guid guardianId)
+    public async Task<List<Notification>> GetByGuardianIdAsync(
+        Guid guardianId)
     {
         return await context.Notifications
             .AsNoTracking()
@@ -28,23 +33,35 @@ public class NotificationRepository(AsisteContext context) : INotificationReposi
             .ToListAsync();
     }
 
-    public async Task<List<Notification>> GetByStatusAsync(string status)
+    public async Task<List<Notification>> GetByStatusAsync(
+        string status)
     {
         return await context.Notifications
             .AsNoTracking()
-            .Where(x => x.Status != null &&
-                        x.Status.ToLower() == status.ToLower())
+            .Where(x =>
+                x.Status != null &&
+                x.Status.ToLower() ==
+                status.ToLower()
+            )
             .ToListAsync();
     }
 
     public async Task AddAsync(Notification notification)
     {
-        await context.Notifications.AddAsync(notification);
+        await context.Notifications
+            .AddAsync(notification);
     }
 
     public Task UpdateAsync(Notification notification)
     {
         context.Notifications.Update(notification);
+
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(Notification notification)
+    {
+        context.Notifications.Remove(notification);
 
         return Task.CompletedTask;
     }

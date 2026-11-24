@@ -10,6 +10,7 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
+    IconButton,
     InputLabel,
     MenuItem,
     Paper,
@@ -21,22 +22,38 @@ import {
     TableHead,
     TableRow,
     TextField,
+    Tooltip,
     Typography,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 
 import api from "../../services/api";
+import { isAdministrator } from "../../services/auth";
 
 function NotificationsPage() {
-    const [notifications, setNotifications] = useState([]);
+    const administrator = isAdministrator();
+
+    const [notifications, setNotifications] =
+        useState([]);
+
     const [guardians, setGuardians] = useState([]);
     const [attendances, setAttendances] = useState([]);
 
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+
     const [open, setOpen] = useState(false);
+
+    const [deleteOpen, setDeleteOpen] =
+        useState(false);
+
+    const [
+        notificationToDelete,
+        setNotificationToDelete,
+    ] = useState(null);
 
     const [form, setForm] = useState({
         guardianId: "",
@@ -44,24 +61,27 @@ function NotificationsPage() {
         message: "",
     });
 
-    const loadData = async () => {
+    const getGuardianName = (guardianId) => {
+        const guardian = guardians.find(
+            (item) => item.guardianId === guardianId
+        );
+
+        if (!guardian) {
+            return "-";
+        }
+
+        return `${guardian.firstName} ${guardian.lastName}`;
+    };
+
+    const loadNotifications = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const [
-                notificationsResponse,
-                guardiansResponse,
-                attendancesResponse,
-            ] = await Promise.all([
-                api.get("/Notifications"),
-                api.get("/Guardians"),
-                api.get("/Attendances"),
-            ]);
+            const response =
+                await api.get("/Notifications");
 
-            setNotifications(notificationsResponse.data);
-            setGuardians(guardiansResponse.data);
-            setAttendances(attendancesResponse.data);
+            setNotifications(response.data);
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -72,18 +92,35 @@ function NotificationsPage() {
         }
     };
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    const loadFormData = async () => {
+        try {
+            const [
+                guardiansResponse,
+                attendancesResponse,
+            ] = await Promise.all([
+                api.get("/Guardians"),
+                api.get("/Attendances"),
+            ]);
 
-    const handleChange = (event) => {
-        const { name, value } = event.target;
+            setGuardians(
+                guardiansResponse.data
+            );
 
-        setForm((previous) => ({
-            ...previous,
-            [name]: value,
-        }));
+            setAttendances(
+                attendancesResponse.data
+            );
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "No se pudieron cargar los datos necesarios"
+            );
+        }
     };
+
+    useEffect(() => {
+        loadNotifications();
+        loadFormData();
+    }, []);
 
     const handleCreate = async () => {
         try {
@@ -91,7 +128,8 @@ function NotificationsPage() {
 
             await api.post("/Notifications", {
                 guardianId: form.guardianId,
-                attendanceId: form.attendanceId || null,
+                attendanceId:
+                    form.attendanceId || null,
                 message: form.message,
             });
 
@@ -103,7 +141,7 @@ function NotificationsPage() {
 
             setOpen(false);
 
-            await loadData();
+            await loadNotifications();
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -112,72 +150,53 @@ function NotificationsPage() {
         }
     };
 
-    const handleMarkAsSent = async (notificationId) => {
+    const handleMarkSent = async (notification) => {
         try {
             setError("");
 
             await api.put(
-                `/Notifications/${notificationId}/send`
+                `/Notifications/${notification.notificationId}/send`
             );
 
-            await loadData();
+            await loadNotifications();
         } catch (err) {
             setError(
                 err.response?.data?.message ||
-                "No se pudo actualizar la notificación"
+                "No se pudo marcar la notificación como enviada"
             );
         }
     };
 
-    const getGuardianName = (guardianId) => {
-        const guardian = guardians.find(
-            (item) => item.guardianId === guardianId
-        );
-
-        if (!guardian) {
-            return guardianId;
-        }
-
-        return `${guardian.firstName} ${guardian.lastName}`;
+    const handleOpenDelete = (notification) => {
+        setNotificationToDelete(notification);
+        setDeleteOpen(true);
     };
 
-    const getAttendanceLabel = (attendanceId) => {
-        if (!attendanceId) {
-            return "-";
+    const handleConfirmDelete = async () => {
+        if (!notificationToDelete) {
+            return;
         }
 
-        const attendance = attendances.find(
-            (item) => item.attendanceId === attendanceId
-        );
+        try {
+            setError("");
 
-        if (!attendance) {
-            return attendanceId;
-        }
+            await api.delete(
+                `/Notifications/${notificationToDelete.notificationId}`
+            );
 
-        return `${attendance.attendanceDate} - ${attendance.status}`;
-    };
+            setDeleteOpen(false);
+            setNotificationToDelete(null);
 
-    const getStatusChip = (status) => {
-        const normalizedStatus =
-            status?.toLowerCase() || "pendiente";
+            await loadNotifications();
+        } catch (err) {
+            setDeleteOpen(false);
+            setNotificationToDelete(null);
 
-        if (normalizedStatus === "enviado") {
-            return (
-                <Chip
-                    label="Enviado"
-                    color="success"
-                    size="small"
-                />
+            setError(
+                err.response?.data?.message ||
+                "No se pudo eliminar la notificación"
             );
         }
-
-        return (
-            <Chip
-                label="Pendiente"
-                color="warning"
-                size="small"
-            />
-        );
     };
 
     return (
@@ -191,10 +210,7 @@ function NotificationsPage() {
                 }}
             >
                 <Box>
-                    <Typography
-                        variant="h4"
-                        fontWeight="bold"
-                    >
+                    <Typography variant="h4">
                         Notificaciones
                     </Typography>
 
@@ -216,94 +232,121 @@ function NotificationsPage() {
                 <Alert
                     severity="error"
                     sx={{ mb: 2 }}
+                    onClose={() => setError("")}
                 >
                     {error}
                 </Alert>
             )}
 
-            <TableContainer component={Paper}>
+            <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{
+                    border: "1px solid #E4EBF3",
+                    borderRadius: 3,
+                    overflow: "hidden",
+                }}
+            >
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Apoderado</TableCell>
-                            <TableCell>Asistencia</TableCell>
-                            <TableCell>Mensaje</TableCell>
-                            <TableCell>Estado</TableCell>
-                            <TableCell>Enviado</TableCell>
+                            <TableCell>
+                                Apoderado
+                            </TableCell>
+
+                            <TableCell>
+                                Mensaje
+                            </TableCell>
+
+                            <TableCell>
+                                Estado
+                            </TableCell>
+
+                            <TableCell>
+                                Enviado
+                            </TableCell>
+
                             <TableCell align="right">
-                                Acción
+                                Acciones
                             </TableCell>
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {!loading &&
-                            notifications.map((notification) => (
-                                <TableRow
-                                    key={notification.notificationId}
-                                >
-                                    <TableCell>
-                                        {getGuardianName(
-                                            notification.guardianId
-                                        )}
-                                    </TableCell>
+                            notifications.map(
+                                (notification) => (
+                                    <TableRow
+                                        key={
+                                            notification.notificationId
+                                        }
+                                        hover
+                                    >
+                                        <TableCell>
+                                            {getGuardianName(notification.guardianId)}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {getAttendanceLabel(
-                                            notification.attendanceId
-                                        )}
-                                    </TableCell>
+                                        <TableCell>
+                                            {
+                                                notification.message
+                                            }
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {notification.message}
-                                    </TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={
+                                                    notification.status
+                                                }
+                                                size="small"
+                                            />
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {getStatusChip(
-                                            notification.status
-                                        )}
-                                    </TableCell>
+                                        <TableCell>
+                                            {notification.sentAt
+                                                ? new Date(
+                                                    notification.sentAt
+                                                ).toLocaleString()
+                                                : "-"}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {notification.sentAt
-                                            ? new Date(
-                                                notification.sentAt
-                                            ).toLocaleString()
-                                            : "-"}
-                                    </TableCell>
+                                        <TableCell align="right">
+                                            {notification.status !==
+                                                "enviado" && (
+                                                    <Tooltip title="Marcar enviada">
+                                                        <IconButton
+                                                            color="primary"
+                                                            onClick={() =>
+                                                                handleMarkSent(
+                                                                    notification
+                                                                )
+                                                            }
+                                                        >
+                                                            <SendIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
 
-                                    <TableCell align="right">
-                                        {notification.status?.toLowerCase() !==
-                                            "enviado" && (
-                                                <Button
-                                                    size="small"
-                                                    startIcon={<SendIcon />}
-                                                    onClick={() =>
-                                                        handleMarkAsSent(
-                                                            notification.notificationId
-                                                        )
-                                                    }
-                                                >
-                                                    Marcar enviada
-                                                </Button>
+                                            {administrator && (
+                                                <Tooltip title="Eliminar">
+                                                    <IconButton
+                                                        color="error"
+                                                        onClick={() =>
+                                                            handleOpenDelete(
+                                                                notification
+                                                            )
+                                                        }
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Tooltip>
                                             )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            )}
                     </TableBody>
                 </Table>
             </TableContainer>
-
-            {!loading &&
-                notifications.length === 0 && (
-                    <Typography
-                        textAlign="center"
-                        color="text.secondary"
-                        sx={{ mt: 3 }}
-                    >
-                        No hay notificaciones registradas
-                    </Typography>
-                )}
 
             <Dialog
                 open={open}
@@ -325,20 +368,37 @@ function NotificationsPage() {
                         </InputLabel>
 
                         <Select
-                            name="guardianId"
                             value={form.guardianId}
                             label="Apoderado"
-                            onChange={handleChange}
+                            onChange={(event) =>
+                                setForm(
+                                    (previous) => ({
+                                        ...previous,
+                                        guardianId:
+                                        event.target.value,
+                                    })
+                                )
+                            }
                         >
-                            {guardians.map((guardian) => (
-                                <MenuItem
-                                    key={guardian.guardianId}
-                                    value={guardian.guardianId}
-                                >
-                                    {guardian.firstName}{" "}
-                                    {guardian.lastName}
-                                </MenuItem>
-                            ))}
+                            {guardians.map(
+                                (guardian) => (
+                                    <MenuItem
+                                        key={
+                                            guardian.guardianId
+                                        }
+                                        value={
+                                            guardian.guardianId
+                                        }
+                                    >
+                                        {
+                                            guardian.firstName
+                                        }{" "}
+                                        {
+                                            guardian.lastName
+                                        }
+                                    </MenuItem>
+                                )
+                            )}
                         </Select>
                     </FormControl>
 
@@ -351,37 +411,54 @@ function NotificationsPage() {
                         </InputLabel>
 
                         <Select
-                            name="attendanceId"
-                            value={form.attendanceId}
+                            value={
+                                form.attendanceId
+                            }
                             label="Asistencia"
-                            onChange={handleChange}
+                            onChange={(event) =>
+                                setForm(
+                                    (previous) => ({
+                                        ...previous,
+                                        attendanceId:
+                                        event.target.value,
+                                    })
+                                )
+                            }
                         >
-                            <MenuItem value="">
-                                Sin asistencia relacionada
-                            </MenuItem>
-
-                            {attendances.map((attendance) => (
-                                <MenuItem
-                                    key={attendance.attendanceId}
-                                    value={attendance.attendanceId}
-                                >
-                                    {attendance.attendanceDate} -{" "}
-                                    {attendance.status}
-                                </MenuItem>
-                            ))}
+                            {attendances.map(
+                                (attendance) => (
+                                    <MenuItem
+                                        key={
+                                            attendance.attendanceId
+                                        }
+                                        value={
+                                            attendance.attendanceId
+                                        }
+                                    >
+                                        {attendance.attendanceDate} -{" "}
+                                        {attendance.status}
+                                    </MenuItem>
+                                )
+                            )}
                         </Select>
                     </FormControl>
 
                     <TextField
                         label="Mensaje"
-                        name="message"
                         value={form.message}
-                        onChange={handleChange}
+                        onChange={(event) =>
+                            setForm(
+                                (previous) => ({
+                                    ...previous,
+                                    message:
+                                    event.target.value,
+                                })
+                            )
+                        }
                         fullWidth
                         multiline
-                        minRows={4}
+                        minRows={3}
                         margin="normal"
-                        required
                     />
                 </DialogContent>
 
@@ -401,6 +478,53 @@ function NotificationsPage() {
                         }
                     >
                         Guardar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={deleteOpen}
+                onClose={() => {
+                    setDeleteOpen(false);
+                    setNotificationToDelete(null);
+                }}
+                fullWidth
+                maxWidth="xs"
+            >
+                <DialogTitle>
+                    Eliminar notificación
+                </DialogTitle>
+
+                <DialogContent>
+                    <Typography>
+                        ¿Deseas eliminar esta notificación?
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                    >
+                        Esta acción no se puede deshacer.
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() => {
+                            setDeleteOpen(false);
+                            setNotificationToDelete(null);
+                        }}
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        color="error"
+                        variant="contained"
+                        onClick={handleConfirmDelete}
+                    >
+                        Eliminar
                     </Button>
                 </DialogActions>
             </Dialog>

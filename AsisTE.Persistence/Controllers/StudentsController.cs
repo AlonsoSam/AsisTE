@@ -31,7 +31,7 @@ public class StudentsController(IMediator mediator) : ControllerBase
 
         return Ok(student);
     }
-    
+
     [HttpGet("{studentId}/guardians")]
     public async Task<IActionResult> GetGuardians(Guid studentId)
     {
@@ -44,7 +44,7 @@ public class StudentsController(IMediator mediator) : ControllerBase
 
         return Ok(guardians);
     }
-    
+
     [HttpGet("{studentId}/ai-summary")]
     public async Task<IActionResult> GetAiSummary(
         Guid studentId)
@@ -62,6 +62,7 @@ public class StudentsController(IMediator mediator) : ControllerBase
         });
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpPost]
     public async Task<IActionResult> Create(AddStudentCommand command)
     {
@@ -72,7 +73,8 @@ public class StudentsController(IMediator mediator) : ControllerBase
             studentId = id
         });
     }
-    
+
+    [Authorize(Roles = "Administrador")]
     [HttpPost("{studentId}/guardians")]
     public async Task<IActionResult> AssignGuardian(
         Guid studentId,
@@ -85,6 +87,7 @@ public class StudentsController(IMediator mediator) : ControllerBase
         return Ok();
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
         Guid id,
@@ -97,6 +100,7 @@ public class StudentsController(IMediator mediator) : ControllerBase
         return Ok();
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -109,7 +113,8 @@ public class StudentsController(IMediator mediator) : ControllerBase
 
         return NoContent();
     }
-    
+
+    [Authorize(Roles = "Administrador")]
     [HttpDelete("{studentId}/guardians/{guardianId}")]
     public async Task<IActionResult> RemoveGuardian(
         Guid studentId,
@@ -125,4 +130,4 @@ public class StudentsController(IMediator mediator) : ControllerBase
 
         return NoContent();
     }
-}
+}    

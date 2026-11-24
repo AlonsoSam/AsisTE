@@ -26,20 +26,23 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import api from "../../services/api";
+import { isAdministrator } from "../../services/auth";
 
 function GuardiansPage() {
+    const administrator = isAdministrator();
+
     const [guardians, setGuardians] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     const [open, setOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
-
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const [guardianToDelete, setGuardianToDelete] =
-        useState(null);
 
     const [selectedGuardian, setSelectedGuardian] =
+        useState(null);
+
+    const [guardianToDelete, setGuardianToDelete] =
         useState(null);
 
     const [form, setForm] = useState({
@@ -63,7 +66,8 @@ function GuardiansPage() {
             setLoading(true);
             setError("");
 
-            const response = await api.get("/Guardians");
+            const response =
+                await api.get("/Guardians");
 
             setGuardians(response.data);
         } catch (err) {
@@ -134,8 +138,10 @@ function GuardiansPage() {
 
         setEditForm({
             dni: guardian.dni || "",
-            firstName: guardian.firstName || "",
-            lastName: guardian.lastName || "",
+            firstName:
+                guardian.firstName || "",
+            lastName:
+                guardian.lastName || "",
             phone: guardian.phone || "",
             email: guardian.email || "",
         });
@@ -154,11 +160,16 @@ function GuardiansPage() {
             await api.put(
                 `/Guardians/${selectedGuardian.guardianId}`,
                 {
-                    dni: editForm.dni || null,
-                    firstName: editForm.firstName,
-                    lastName: editForm.lastName,
-                    phone: editForm.phone || null,
-                    email: editForm.email || null,
+                    dni:
+                        editForm.dni || null,
+                    firstName:
+                    editForm.firstName,
+                    lastName:
+                    editForm.lastName,
+                    phone:
+                        editForm.phone || null,
+                    email:
+                        editForm.email || null,
                 }
             );
 
@@ -196,6 +207,9 @@ function GuardiansPage() {
 
             await loadGuardians();
         } catch (err) {
+            setDeleteOpen(false);
+            setGuardianToDelete(null);
+
             setError(
                 err.response?.data?.message ||
                 "No se pudo eliminar el apoderado"
@@ -208,7 +222,8 @@ function GuardiansPage() {
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent:
+                        "space-between",
                     alignItems: "center",
                     mb: 3,
                 }}
@@ -223,17 +238,27 @@ function GuardiansPage() {
                     </Typography>
                 </Box>
 
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpen(true)}
-                >
-                    Nuevo apoderado
-                </Button>
+                {administrator && (
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() =>
+                            setOpen(true)
+                        }
+                    >
+                        Nuevo apoderado
+                    </Button>
+                )}
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert
+                    severity="error"
+                    sx={{ mb: 2 }}
+                    onClose={() =>
+                        setError("")
+                    }
+                >
                     {error}
                 </Alert>
             )}
@@ -242,7 +267,8 @@ function GuardiansPage() {
                 component={Paper}
                 elevation={0}
                 sx={{
-                    border: "1px solid #E4EBF3",
+                    border:
+                        "1px solid #E4EBF3",
                     borderRadius: 3,
                     overflow: "hidden",
                 }}
@@ -250,275 +276,373 @@ function GuardiansPage() {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>DNI</TableCell>
-                            <TableCell>Nombres</TableCell>
-                            <TableCell>Apellidos</TableCell>
-                            <TableCell>Teléfono</TableCell>
-                            <TableCell>Correo</TableCell>
-                            <TableCell align="right">
-                                Acciones
+                            <TableCell>
+                                DNI
                             </TableCell>
+                            <TableCell>
+                                Nombres
+                            </TableCell>
+                            <TableCell>
+                                Apellidos
+                            </TableCell>
+                            <TableCell>
+                                Teléfono
+                            </TableCell>
+                            <TableCell>
+                                Correo
+                            </TableCell>
+
+                            {administrator && (
+                                <TableCell align="right">
+                                    Acciones
+                                </TableCell>
+                            )}
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {!loading &&
-                            guardians.map((guardian) => (
-                                <TableRow
-                                    key={guardian.guardianId}
-                                    hover
-                                >
-                                    <TableCell>
-                                        {guardian.dni || "-"}
-                                    </TableCell>
+                            guardians.map(
+                                (guardian) => (
+                                    <TableRow
+                                        key={
+                                            guardian.guardianId
+                                        }
+                                        hover
+                                    >
+                                        <TableCell>
+                                            {guardian.dni ||
+                                                "-"}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {guardian.firstName}
-                                    </TableCell>
+                                        <TableCell>
+                                            {
+                                                guardian.firstName
+                                            }
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {guardian.lastName}
-                                    </TableCell>
+                                        <TableCell>
+                                            {
+                                                guardian.lastName
+                                            }
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {guardian.phone || "-"}
-                                    </TableCell>
+                                        <TableCell>
+                                            {guardian.phone ||
+                                                "-"}
+                                        </TableCell>
 
-                                    <TableCell>
-                                        {guardian.email || "-"}
-                                    </TableCell>
+                                        <TableCell>
+                                            {guardian.email ||
+                                                "-"}
+                                        </TableCell>
 
-                                    <TableCell align="right">
-                                        <Tooltip title="Editar">
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleOpenEdit(
-                                                        guardian
-                                                    )
-                                                }
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                                        </Tooltip>
+                                        {administrator && (
+                                            <TableCell align="right">
+                                                <Tooltip title="Editar">
+                                                    <IconButton
+                                                        onClick={() =>
+                                                            handleOpenEdit(
+                                                                guardian
+                                                            )
+                                                        }
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </Tooltip>
 
-                                        <Tooltip title="Eliminar">
-                                            <IconButton
-                                                color="error"
-                                                onClick={() =>
-                                                    handleOpenDelete(
-                                                        guardian
-                                                    )
-                                                }
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                                <Tooltip title="Eliminar">
+                                                    <IconButton
+                                                        color="error"
+                                                        onClick={() =>
+                                                            handleOpenDelete(
+                                                                guardian
+                                                            )
+                                                        }
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                )
+                            )}
                     </TableBody>
                 </Table>
             </TableContainer>
 
-            {/* CREAR */}
-            <Dialog
-                open={open}
-                onClose={() => setOpen(false)}
-                fullWidth
-                maxWidth="sm"
-            >
-                <DialogTitle>
-                    Registrar apoderado
-                </DialogTitle>
-
-                <DialogContent>
-                    <TextField
-                        label="DNI"
-                        name="dni"
-                        value={form.dni}
-                        onChange={handleChange}
+            {administrator && (
+                <>
+                    <Dialog
+                        open={open}
+                        onClose={() =>
+                            setOpen(false)
+                        }
                         fullWidth
-                        margin="normal"
-                    />
-
-                    <TextField
-                        label="Nombres"
-                        name="firstName"
-                        value={form.firstName}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                        required
-                    />
-
-                    <TextField
-                        label="Apellidos"
-                        name="lastName"
-                        value={form.lastName}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                        required
-                    />
-
-                    <TextField
-                        label="Teléfono"
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-
-                    <TextField
-                        label="Correo"
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                </DialogContent>
-
-                <DialogActions>
-                    <Button onClick={() => setOpen(false)}>
-                        Cancelar
-                    </Button>
-
-                    <Button
-                        variant="contained"
-                        onClick={handleCreate}
+                        maxWidth="sm"
                     >
-                        Guardar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        <DialogTitle>
+                            Registrar apoderado
+                        </DialogTitle>
 
-            {/* EDITAR */}
-            <Dialog
-                open={editOpen}
-                onClose={() => setEditOpen(false)}
-                fullWidth
-                maxWidth="sm"
-            >
-                <DialogTitle>
-                    Editar apoderado
-                </DialogTitle>
+                        <DialogContent>
+                            <TextField
+                                label="DNI"
+                                name="dni"
+                                value={form.dni}
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                <DialogContent>
-                    <TextField
-                        label="DNI"
-                        name="dni"
-                        value={editForm.dni}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
+                            <TextField
+                                label="Nombres"
+                                name="firstName"
+                                value={
+                                    form.firstName
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                    <TextField
-                        label="Nombres"
-                        name="firstName"
-                        value={editForm.firstName}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
+                            <TextField
+                                label="Apellidos"
+                                name="lastName"
+                                value={
+                                    form.lastName
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                    <TextField
-                        label="Apellidos"
-                        name="lastName"
-                        value={editForm.lastName}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
+                            <TextField
+                                label="Teléfono"
+                                name="phone"
+                                value={
+                                    form.phone
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                    <TextField
-                        label="Teléfono"
-                        name="phone"
-                        value={editForm.phone}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
+                            <TextField
+                                label="Correo"
+                                name="email"
+                                value={
+                                    form.email
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
+                        </DialogContent>
 
-                    <TextField
-                        label="Correo"
-                        name="email"
-                        value={editForm.email}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                </DialogContent>
+                        <DialogActions>
+                            <Button
+                                onClick={() =>
+                                    setOpen(false)
+                                }
+                            >
+                                Cancelar
+                            </Button>
 
-                <DialogActions>
-                    <Button
-                        onClick={() =>
+                            <Button
+                                variant="contained"
+                                onClick={
+                                    handleCreate
+                                }
+                            >
+                                Guardar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    <Dialog
+                        open={editOpen}
+                        onClose={() =>
                             setEditOpen(false)
                         }
+                        fullWidth
+                        maxWidth="sm"
                     >
-                        Cancelar
-                    </Button>
+                        <DialogTitle>
+                            Editar apoderado
+                        </DialogTitle>
 
-                    <Button
-                        variant="contained"
-                        onClick={handleUpdate}
-                    >
-                        Actualizar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        <DialogContent>
+                            <TextField
+                                label="DNI"
+                                name="dni"
+                                value={
+                                    editForm.dni
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-            {/* ELIMINAR */}
-            <Dialog
-                open={deleteOpen}
-                onClose={() => setDeleteOpen(false)}
-                fullWidth
-                maxWidth="xs"
-            >
-                <DialogTitle>
-                    Eliminar apoderado
-                </DialogTitle>
+                            <TextField
+                                label="Nombres"
+                                name="firstName"
+                                value={
+                                    editForm.firstName
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                <DialogContent>
-                    <Typography>
-                        ¿Deseas eliminar al apoderado{" "}
-                        <strong>
-                            {guardianToDelete?.firstName}{" "}
-                            {guardianToDelete?.lastName}
-                        </strong>
-                        ?
-                    </Typography>
+                            <TextField
+                                label="Apellidos"
+                                name="lastName"
+                                value={
+                                    editForm.lastName
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 1 }}
-                    >
-                        Esta acción no se puede deshacer.
-                    </Typography>
-                </DialogContent>
+                            <TextField
+                                label="Teléfono"
+                                name="phone"
+                                value={
+                                    editForm.phone
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                <DialogActions>
-                    <Button
-                        onClick={() => {
-                            setDeleteOpen(false);
-                            setGuardianToDelete(null);
+                            <TextField
+                                label="Correo"
+                                name="email"
+                                value={
+                                    editForm.email
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
+                        </DialogContent>
+
+                        <DialogActions>
+                            <Button
+                                onClick={() =>
+                                    setEditOpen(
+                                        false
+                                    )
+                                }
+                            >
+                                Cancelar
+                            </Button>
+
+                            <Button
+                                variant="contained"
+                                onClick={
+                                    handleUpdate
+                                }
+                            >
+                                Actualizar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    <Dialog
+                        open={deleteOpen}
+                        onClose={() => {
+                            setDeleteOpen(
+                                false
+                            );
+                            setGuardianToDelete(
+                                null
+                            );
                         }}
+                        fullWidth
+                        maxWidth="xs"
                     >
-                        Cancelar
-                    </Button>
+                        <DialogTitle>
+                            Eliminar apoderado
+                        </DialogTitle>
 
-                    <Button
-                        color="error"
-                        variant="contained"
-                        onClick={handleConfirmDelete}
-                    >
-                        Eliminar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        <DialogContent>
+                            <Typography>
+                                ¿Deseas eliminar al
+                                apoderado{" "}
+                                <strong>
+                                    {
+                                        guardianToDelete?.firstName
+                                    }{" "}
+                                    {
+                                        guardianToDelete?.lastName
+                                    }
+                                </strong>
+                                ?
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: 1 }}
+                            >
+                                El registro solo
+                                podrá eliminarse si
+                                no tiene información
+                                relacionada.
+                            </Typography>
+                        </DialogContent>
+
+                        <DialogActions>
+                            <Button
+                                onClick={() => {
+                                    setDeleteOpen(
+                                        false
+                                    );
+                                    setGuardianToDelete(
+                                        null
+                                    );
+                                }}
+                            >
+                                Cancelar
+                            </Button>
+
+                            <Button
+                                color="error"
+                                variant="contained"
+                                onClick={
+                                    handleConfirmDelete
+                                }
+                            >
+                                Eliminar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                </>
+            )}
         </Box>
     );
 }

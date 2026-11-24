@@ -32,6 +32,7 @@ public class DevicesController(IMediator mediator) : ControllerBase
         return Ok(device);
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpPost]
     public async Task<IActionResult> Create(AddDeviceCommand command)
     {
@@ -43,6 +44,7 @@ public class DevicesController(IMediator mediator) : ControllerBase
         });
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
         Guid id,
@@ -55,6 +57,7 @@ public class DevicesController(IMediator mediator) : ControllerBase
         return Ok();
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

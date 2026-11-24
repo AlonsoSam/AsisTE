@@ -31,20 +31,23 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import api from "../../services/api";
+import { isAdministrator } from "../../services/auth";
 
 function DevicesPage() {
+    const administrator = isAdministrator();
+
     const [devices, setDevices] = useState([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
 
     const [open, setOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
-
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const [deviceToDelete, setDeviceToDelete] =
-        useState(null);
 
     const [selectedDevice, setSelectedDevice] =
+        useState(null);
+
+    const [deviceToDelete, setDeviceToDelete] =
         useState(null);
 
     const [form, setForm] = useState({
@@ -65,7 +68,8 @@ function DevicesPage() {
             setLoading(true);
             setError("");
 
-            const response = await api.get("/Devices");
+            const response =
+                await api.get("/Devices");
 
             setDevices(response.data);
         } catch (err) {
@@ -105,9 +109,11 @@ function DevicesPage() {
             setError("");
 
             await api.post("/Devices", {
-                deviceCode: form.deviceCode,
+                deviceCode:
+                form.deviceCode,
                 name: form.name,
-                location: form.location || null,
+                location:
+                    form.location || null,
             });
 
             setForm({
@@ -131,9 +137,11 @@ function DevicesPage() {
         setSelectedDevice(device);
 
         setEditForm({
-            deviceCode: device.deviceCode || "",
+            deviceCode:
+                device.deviceCode || "",
             name: device.name || "",
-            location: device.location || "",
+            location:
+                device.location || "",
             active: device.active,
         });
 
@@ -151,9 +159,12 @@ function DevicesPage() {
             await api.put(
                 `/Devices/${selectedDevice.deviceId}`,
                 {
-                    deviceCode: editForm.deviceCode,
+                    deviceCode:
+                    editForm.deviceCode,
                     name: editForm.name,
-                    location: editForm.location || null,
+                    location:
+                        editForm.location ||
+                        null,
                     active: editForm.active,
                 }
             );
@@ -192,6 +203,9 @@ function DevicesPage() {
 
             await loadDevices();
         } catch (err) {
+            setDeleteOpen(false);
+            setDeviceToDelete(null);
+
             setError(
                 err.response?.data?.message ||
                 "No se pudo eliminar el dispositivo"
@@ -204,7 +218,8 @@ function DevicesPage() {
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent:
+                        "space-between",
                     alignItems: "center",
                     mb: 3,
                 }}
@@ -219,17 +234,27 @@ function DevicesPage() {
                     </Typography>
                 </Box>
 
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpen(true)}
-                >
-                    Nuevo dispositivo
-                </Button>
+                {administrator && (
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() =>
+                            setOpen(true)
+                        }
+                    >
+                        Nuevo dispositivo
+                    </Button>
+                )}
             </Box>
 
             {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+                <Alert
+                    severity="error"
+                    sx={{ mb: 2 }}
+                    onClose={() =>
+                        setError("")
+                    }
+                >
                     {error}
                 </Alert>
             )}
@@ -238,7 +263,8 @@ function DevicesPage() {
                 component={Paper}
                 elevation={0}
                 sx={{
-                    border: "1px solid #E4EBF3",
+                    border:
+                        "1px solid #E4EBF3",
                     borderRadius: 3,
                     overflow: "hidden",
                 }}
@@ -246,286 +272,371 @@ function DevicesPage() {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Código</TableCell>
-                            <TableCell>Nombre</TableCell>
-                            <TableCell>Ubicación</TableCell>
-                            <TableCell>Estado</TableCell>
-                            <TableCell align="right">
-                                Acciones
+                            <TableCell>
+                                Código
                             </TableCell>
+                            <TableCell>
+                                Nombre
+                            </TableCell>
+                            <TableCell>
+                                Ubicación
+                            </TableCell>
+                            <TableCell>
+                                Estado
+                            </TableCell>
+
+                            {administrator && (
+                                <TableCell align="right">
+                                    Acciones
+                                </TableCell>
+                            )}
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {!loading &&
-                            devices.map((device) => (
-                                <TableRow
-                                    key={device.deviceId}
-                                    hover
-                                >
-                                    <TableCell>
-                                        {device.deviceCode}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {device.name}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {device.location || "-"}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <Chip
-                                            label={
-                                                device.active
-                                                    ? "Activo"
-                                                    : "Inactivo"
+                            devices.map(
+                                (device) => (
+                                    <TableRow
+                                        key={
+                                            device.deviceId
+                                        }
+                                        hover
+                                    >
+                                        <TableCell>
+                                            {
+                                                device.deviceCode
                                             }
-                                            size="small"
-                                            sx={{
-                                                bgcolor:
-                                                    device.active
-                                                        ? "#E8F7EF"
-                                                        : "#F2F2F2",
-                                                color:
-                                                    device.active
-                                                        ? "#2FA36B"
-                                                        : "#667788",
-                                                fontWeight: 600,
-                                            }}
-                                        />
-                                    </TableCell>
+                                        </TableCell>
 
-                                    <TableCell align="right">
-                                        <Tooltip title="Editar">
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleOpenEdit(
-                                                        device
-                                                    )
-                                                }
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                                        </Tooltip>
+                                        <TableCell>
+                                            {
+                                                device.name
+                                            }
+                                        </TableCell>
 
-                                        <Tooltip title="Eliminar">
-                                            <IconButton
-                                                color="error"
-                                                onClick={() =>
-                                                    handleOpenDelete(
-                                                        device
-                                                    )
+                                        <TableCell>
+                                            {device.location ||
+                                                "-"}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Chip
+                                                label={
+                                                    device.active
+                                                        ? "Activo"
+                                                        : "Inactivo"
                                                 }
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                                size="small"
+                                                sx={{
+                                                    bgcolor:
+                                                        device.active
+                                                            ? "#E8F7EF"
+                                                            : "#F2F2F2",
+                                                    color:
+                                                        device.active
+                                                            ? "#2FA36B"
+                                                            : "#667788",
+                                                    fontWeight: 600,
+                                                }}
+                                            />
+                                        </TableCell>
+
+                                        {administrator && (
+                                            <TableCell align="right">
+                                                <Tooltip title="Editar">
+                                                    <IconButton
+                                                        onClick={() =>
+                                                            handleOpenEdit(
+                                                                device
+                                                            )
+                                                        }
+                                                    >
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+
+                                                <Tooltip title="Eliminar">
+                                                    <IconButton
+                                                        color="error"
+                                                        onClick={() =>
+                                                            handleOpenDelete(
+                                                                device
+                                                            )
+                                                        }
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                )
+                            )}
                     </TableBody>
                 </Table>
             </TableContainer>
 
-            {/* CREAR */}
-            <Dialog
-                open={open}
-                onClose={() => setOpen(false)}
-                fullWidth
-                maxWidth="sm"
-            >
-                <DialogTitle>
-                    Registrar dispositivo
-                </DialogTitle>
-
-                <DialogContent>
-                    <TextField
-                        label="Código"
-                        name="deviceCode"
-                        value={form.deviceCode}
-                        onChange={handleChange}
+            {administrator && (
+                <>
+                    <Dialog
+                        open={open}
+                        onClose={() =>
+                            setOpen(false)
+                        }
                         fullWidth
-                        margin="normal"
-                    />
-
-                    <TextField
-                        label="Nombre"
-                        name="name"
-                        value={form.name}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-
-                    <TextField
-                        label="Ubicación"
-                        name="location"
-                        value={form.location}
-                        onChange={handleChange}
-                        fullWidth
-                        margin="normal"
-                    />
-                </DialogContent>
-
-                <DialogActions>
-                    <Button onClick={() => setOpen(false)}>
-                        Cancelar
-                    </Button>
-
-                    <Button
-                        variant="contained"
-                        onClick={handleCreate}
+                        maxWidth="sm"
                     >
-                        Guardar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        <DialogTitle>
+                            Registrar dispositivo
+                        </DialogTitle>
 
-            {/* EDITAR */}
-            <Dialog
-                open={editOpen}
-                onClose={() => setEditOpen(false)}
-                fullWidth
-                maxWidth="sm"
-            >
-                <DialogTitle>
-                    Editar dispositivo
-                </DialogTitle>
+                        <DialogContent>
+                            <TextField
+                                label="Código"
+                                name="deviceCode"
+                                value={
+                                    form.deviceCode
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                <DialogContent>
-                    <TextField
-                        label="Código"
-                        name="deviceCode"
-                        value={editForm.deviceCode}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
+                            <TextField
+                                label="Nombre"
+                                name="name"
+                                value={
+                                    form.name
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                    <TextField
-                        label="Nombre"
-                        name="name"
-                        value={editForm.name}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
+                            <TextField
+                                label="Ubicación"
+                                name="location"
+                                value={
+                                    form.location
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
+                        </DialogContent>
 
-                    <TextField
-                        label="Ubicación"
-                        name="location"
-                        value={editForm.location}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                    />
+                        <DialogActions>
+                            <Button
+                                onClick={() =>
+                                    setOpen(false)
+                                }
+                            >
+                                Cancelar
+                            </Button>
 
-                    <FormControl
-                        fullWidth
-                        margin="normal"
-                    >
-                        <InputLabel>
-                            Estado
-                        </InputLabel>
+                            <Button
+                                variant="contained"
+                                onClick={
+                                    handleCreate
+                                }
+                            >
+                                Guardar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
 
-                        <Select
-                            value={
-                                editForm.active
-                                    ? "activo"
-                                    : "inactivo"
-                            }
-                            label="Estado"
-                            onChange={(event) =>
-                                setEditForm(
-                                    (previous) => ({
-                                        ...previous,
-                                        active:
-                                            event.target
-                                                .value ===
-                                            "activo",
-                                    })
-                                )
-                            }
-                        >
-                            <MenuItem value="activo">
-                                Activo
-                            </MenuItem>
-
-                            <MenuItem value="inactivo">
-                                Inactivo
-                            </MenuItem>
-                        </Select>
-                    </FormControl>
-                </DialogContent>
-
-                <DialogActions>
-                    <Button
-                        onClick={() =>
+                    <Dialog
+                        open={editOpen}
+                        onClose={() =>
                             setEditOpen(false)
                         }
+                        fullWidth
+                        maxWidth="sm"
                     >
-                        Cancelar
-                    </Button>
+                        <DialogTitle>
+                            Editar dispositivo
+                        </DialogTitle>
 
-                    <Button
-                        variant="contained"
-                        onClick={handleUpdate}
-                    >
-                        Actualizar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        <DialogContent>
+                            <TextField
+                                label="Código"
+                                name="deviceCode"
+                                value={
+                                    editForm.deviceCode
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-            {/* ELIMINAR */}
-            <Dialog
-                open={deleteOpen}
-                onClose={() => setDeleteOpen(false)}
-                fullWidth
-                maxWidth="xs"
-            >
-                <DialogTitle>
-                    Eliminar dispositivo
-                </DialogTitle>
+                            <TextField
+                                label="Nombre"
+                                name="name"
+                                value={
+                                    editForm.name
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                <DialogContent>
-                    <Typography>
-                        ¿Deseas eliminar el dispositivo{" "}
-                        <strong>
-                            {deviceToDelete?.name}
-                        </strong>
-                        ?
-                    </Typography>
+                            <TextField
+                                label="Ubicación"
+                                name="location"
+                                value={
+                                    editForm.location
+                                }
+                                onChange={
+                                    handleEditChange
+                                }
+                                fullWidth
+                                margin="normal"
+                            />
 
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 1 }}
-                    >
-                        Esta acción no se puede deshacer.
-                    </Typography>
-                </DialogContent>
+                            <FormControl
+                                fullWidth
+                                margin="normal"
+                            >
+                                <InputLabel>
+                                    Estado
+                                </InputLabel>
 
-                <DialogActions>
-                    <Button
-                        onClick={() => {
-                            setDeleteOpen(false);
-                            setDeviceToDelete(null);
+                                <Select
+                                    value={
+                                        editForm.active
+                                            ? "activo"
+                                            : "inactivo"
+                                    }
+                                    label="Estado"
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        setEditForm(
+                                            (
+                                                previous
+                                            ) => ({
+                                                ...previous,
+                                                active:
+                                                    event
+                                                        .target
+                                                        .value ===
+                                                    "activo",
+                                            })
+                                        )
+                                    }
+                                >
+                                    <MenuItem value="activo">
+                                        Activo
+                                    </MenuItem>
+
+                                    <MenuItem value="inactivo">
+                                        Inactivo
+                                    </MenuItem>
+                                </Select>
+                            </FormControl>
+                        </DialogContent>
+
+                        <DialogActions>
+                            <Button
+                                onClick={() =>
+                                    setEditOpen(
+                                        false
+                                    )
+                                }
+                            >
+                                Cancelar
+                            </Button>
+
+                            <Button
+                                variant="contained"
+                                onClick={
+                                    handleUpdate
+                                }
+                            >
+                                Actualizar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
+                    <Dialog
+                        open={deleteOpen}
+                        onClose={() => {
+                            setDeleteOpen(
+                                false
+                            );
+                            setDeviceToDelete(
+                                null
+                            );
                         }}
+                        fullWidth
+                        maxWidth="xs"
                     >
-                        Cancelar
-                    </Button>
+                        <DialogTitle>
+                            Eliminar dispositivo
+                        </DialogTitle>
 
-                    <Button
-                        color="error"
-                        variant="contained"
-                        onClick={handleConfirmDelete}
-                    >
-                        Eliminar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                        <DialogContent>
+                            <Typography>
+                                ¿Deseas eliminar el
+                                dispositivo{" "}
+                                <strong>
+                                    {
+                                        deviceToDelete?.name
+                                    }
+                                </strong>
+                                ?
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: 1 }}
+                            >
+                                El registro solo
+                                podrá eliminarse si
+                                no tiene asistencias
+                                relacionadas.
+                            </Typography>
+                        </DialogContent>
+
+                        <DialogActions>
+                            <Button
+                                onClick={() => {
+                                    setDeleteOpen(
+                                        false
+                                    );
+                                    setDeviceToDelete(
+                                        null
+                                    );
+                                }}
+                            >
+                                Cancelar
+                            </Button>
+
+                            <Button
+                                color="error"
+                                variant="contained"
+                                onClick={
+                                    handleConfirmDelete
+                                }
+                            >
+                                Eliminar
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                </>
+            )}
         </Box>
     );
 }

@@ -1,97 +1,97 @@
-using AsisTE.Application.UseCases.Users.Commands;
-using AsisTE.Application.UseCases.Users.Queries;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+    using AsisTE.Application.UseCases.Users.Commands;
+    using AsisTE.Application.UseCases.Users.Queries;
+    using MediatR;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Authorization;
 
-namespace AsisTE.Persistence.Controllers;
+    namespace AsisTE.Persistence.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize(Roles = "Administrador")]
-public class UsersController(IMediator mediator) : ControllerBase
-{
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
+    public class UsersController(IMediator mediator) : ControllerBase
     {
-        var users = await mediator.Send(
-            new GetUsersQuery()
-        );
-
-        return Ok(users);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var user = await mediator.Send(
-            new GetUserByIdQuery
-            {
-                Id = id
-            }
-        );
-
-        return Ok(user);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Create(AddUserCommand command)
-    {
-        var id = await mediator.Send(command);
-
-        return Ok(new
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            userId = id
-        });
-    }
+            var users = await mediator.Send(
+                new GetUsersQuery()
+            );
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(
-        Guid id,
-        UpdateUserCommand command)
-    {
-        command.Id = id;
+            return Ok(users);
+        }
 
-        await mediator.Send(command);
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var user = await mediator.Send(
+                new GetUserByIdQuery
+                {
+                    Id = id
+                }
+            );
 
-        return Ok();
-    }
+            return Ok(user);
+        }
+        
+        [HttpGet("username/{username}")]
+        public async Task<IActionResult> GetByUsername(string username)
+        {
+            var user = await mediator.Send(
+                new GetUserByUsernameQuery
+                {
+                    Username = username
+                }
+            );
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        await mediator.Send(
-            new DeleteUserCommand
+            return Ok(user);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(AddUserCommand command)
+        {
+            var id = await mediator.Send(command);
+
+            return Ok(new
             {
-                Id = id
-            }
-        );
+                userId = id
+            });
+        }
 
-        return NoContent();
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
+            Guid id,
+            UpdateUserCommand command)
+        {
+            command.Id = id;
+
+            await mediator.Send(command);
+
+            return Ok();
+        }
+
+        [HttpPut("{id}/password")]
+        public async Task<IActionResult> ChangePassword(
+            Guid id,
+            ChangePasswordCommand command)
+        {
+            command.Id = id;
+
+            await mediator.Send(command);
+
+            return Ok();
+        }
+        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await mediator.Send(
+                new DeleteUserCommand
+                {
+                    Id = id
+                }
+            );
+
+            return NoContent();
+        }
     }
-
-    [HttpGet("username/{username}")]
-    public async Task<IActionResult> GetByUsername(string username)
-    {
-        var user = await mediator.Send(
-            new GetUserByUsernameQuery
-            {
-                Username = username
-            }
-        );
-
-        return Ok(user);
-    }
-
-    [HttpPut("{id}/password")]
-    public async Task<IActionResult> ChangePassword(
-        Guid id,
-        ChangePasswordCommand command)
-    {
-        command.Id = id;
-
-        await mediator.Send(command);
-
-        return Ok();
-    }
-}

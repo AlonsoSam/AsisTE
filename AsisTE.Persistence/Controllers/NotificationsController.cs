@@ -109,4 +109,18 @@ public class NotificationsController(IMediator mediator) : ControllerBase
 
         return Ok();
     }
+    
+    [Authorize(Roles = "Administrador")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await mediator.Send(
+            new DeleteNotificationCommand
+            {
+                Id = id
+            }
+        );
+
+        return NoContent();
+    }
 }

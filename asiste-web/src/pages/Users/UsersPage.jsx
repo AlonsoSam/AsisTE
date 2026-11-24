@@ -22,35 +22,31 @@ import {
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import LockResetIcon from "@mui/icons-material/LockReset";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import api from "../../services/api";
 
 function UsersPage() {
     const [users, setUsers] = useState([]);
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const [openCreate, setOpenCreate] = useState(false);
-    const [openEdit, setOpenEdit] = useState(false);
-    const [openPassword, setOpenPassword] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
 
     const [selectedUser, setSelectedUser] = useState(null);
+    const [userToDelete, setUserToDelete] = useState(null);
 
-    const [createForm, setCreateForm] = useState({
+    const [form, setForm] = useState({
         username: "",
         password: "",
-        email: "",
     });
 
     const [editForm, setEditForm] = useState({
         username: "",
-        email: "",
     });
-
-    const [newPassword, setNewPassword] = useState("");
 
     const loadUsers = async () => {
         try {
@@ -58,7 +54,6 @@ function UsersPage() {
             setError("");
 
             const response = await api.get("/Users");
-
             setUsers(response.data);
         } catch (err) {
             setError(
@@ -74,41 +69,21 @@ function UsersPage() {
         loadUsers();
     }, []);
 
-    const handleCreateChange = (event) => {
-        const { name, value } = event.target;
-
-        setCreateForm((previous) => ({
-            ...previous,
-            [name]: value,
-        }));
-    };
-
-    const handleEditChange = (event) => {
-        const { name, value } = event.target;
-
-        setEditForm((previous) => ({
-            ...previous,
-            [name]: value,
-        }));
-    };
-
     const handleCreate = async () => {
         try {
             setError("");
 
             await api.post("/Users", {
-                username: createForm.username,
-                password: createForm.password,
-                email: createForm.email || null,
+                username: form.username,
+                password: form.password,
             });
 
-            setCreateForm({
+            setForm({
                 username: "",
                 password: "",
-                email: "",
             });
 
-            setOpenCreate(false);
+            setOpen(false);
 
             await loadUsers();
         } catch (err) {
@@ -123,11 +98,10 @@ function UsersPage() {
         setSelectedUser(user);
 
         setEditForm({
-            username: user.username,
-            email: user.email || "",
+            username: user.username || "",
         });
 
-        setOpenEdit(true);
+        setEditOpen(true);
     };
 
     const handleUpdate = async () => {
@@ -142,11 +116,10 @@ function UsersPage() {
                 `/Users/${selectedUser.userId}`,
                 {
                     username: editForm.username,
-                    email: editForm.email || null,
                 }
             );
 
-            setOpenEdit(false);
+            setEditOpen(false);
             setSelectedUser(null);
 
             await loadUsers();
@@ -158,57 +131,34 @@ function UsersPage() {
         }
     };
 
-    const handleDelete = async (userId) => {
-        const confirmed = window.confirm(
-            "¿Deseas eliminar este usuario?"
-        );
+    const handleOpenDelete = (user) => {
+        setUserToDelete(user);
+        setDeleteOpen(true);
+    };
 
-        if (!confirmed) {
+    const handleConfirmDelete = async () => {
+        if (!userToDelete) {
             return;
         }
 
         try {
             setError("");
 
-            await api.delete(`/Users/${userId}`);
+            await api.delete(
+                `/Users/${userToDelete.userId}`
+            );
+
+            setDeleteOpen(false);
+            setUserToDelete(null);
 
             await loadUsers();
         } catch (err) {
+            setDeleteOpen(false);
+            setUserToDelete(null);
+
             setError(
                 err.response?.data?.message ||
                 "No se pudo eliminar el usuario"
-            );
-        }
-    };
-
-    const handleOpenPassword = (user) => {
-        setSelectedUser(user);
-        setNewPassword("");
-        setOpenPassword(true);
-    };
-
-    const handleChangePassword = async () => {
-        if (!selectedUser) {
-            return;
-        }
-
-        try {
-            setError("");
-
-            await api.put(
-                `/Users/${selectedUser.userId}/password`,
-                {
-                    password: newPassword,
-                }
-            );
-
-            setOpenPassword(false);
-            setSelectedUser(null);
-            setNewPassword("");
-        } catch (err) {
-            setError(
-                err.response?.data?.message ||
-                "No se pudo cambiar la contraseña"
             );
         }
     };
@@ -224,10 +174,7 @@ function UsersPage() {
                 }}
             >
                 <Box>
-                    <Typography
-                        variant="h4"
-                        fontWeight="bold"
-                    >
+                    <Typography variant="h4">
                         Usuarios
                     </Typography>
 
@@ -239,7 +186,7 @@ function UsersPage() {
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => setOpenCreate(true)}
+                    onClick={() => setOpen(true)}
                 >
                     Nuevo usuario
                 </Button>
@@ -249,18 +196,28 @@ function UsersPage() {
                 <Alert
                     severity="error"
                     sx={{ mb: 2 }}
+                    onClose={() => setError("")}
                 >
                     {error}
                 </Alert>
             )}
 
-            <TableContainer component={Paper}>
+            <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{
+                    border: "1px solid #E4EBF3",
+                    borderRadius: 3,
+                    overflow: "hidden",
+                }}
+            >
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Usuario</TableCell>
-                            <TableCell>Correo</TableCell>
-                            <TableCell>Creado</TableCell>
+                            <TableCell>
+                                Usuario
+                            </TableCell>
+
                             <TableCell align="right">
                                 Acciones
                             </TableCell>
@@ -270,48 +227,34 @@ function UsersPage() {
                     <TableBody>
                         {!loading &&
                             users.map((user) => (
-                                <TableRow key={user.userId}>
+                                <TableRow
+                                    key={user.userId}
+                                    hover
+                                >
                                     <TableCell>
                                         {user.username}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {user.email || "-"}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {user.createdAt
-                                            ? new Date(
-                                                user.createdAt
-                                            ).toLocaleString()
-                                            : "-"}
                                     </TableCell>
 
                                     <TableCell align="right">
                                         <Tooltip title="Editar">
                                             <IconButton
                                                 onClick={() =>
-                                                    handleOpenEdit(user)
+                                                    handleOpenEdit(
+                                                        user
+                                                    )
                                                 }
                                             >
                                                 <EditIcon />
                                             </IconButton>
                                         </Tooltip>
 
-                                        <Tooltip title="Cambiar contraseña">
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleOpenPassword(user)
-                                                }
-                                            >
-                                                <LockResetIcon />
-                                            </IconButton>
-                                        </Tooltip>
-
                                         <Tooltip title="Eliminar">
                                             <IconButton
+                                                color="error"
                                                 onClick={() =>
-                                                    handleDelete(user.userId)
+                                                    handleOpenDelete(
+                                                        user
+                                                    )
                                                 }
                                             >
                                                 <DeleteIcon />
@@ -324,54 +267,46 @@ function UsersPage() {
                 </Table>
             </TableContainer>
 
-            {!loading && users.length === 0 && (
-                <Typography
-                    textAlign="center"
-                    color="text.secondary"
-                    sx={{ mt: 3 }}
-                >
-                    No hay usuarios registrados
-                </Typography>
-            )}
-
             <Dialog
-                open={openCreate}
-                onClose={() => setOpenCreate(false)}
+                open={open}
+                onClose={() => setOpen(false)}
                 fullWidth
-                maxWidth="sm"
+                maxWidth="xs"
             >
                 <DialogTitle>
-                    Nuevo usuario
+                    Registrar usuario
                 </DialogTitle>
 
                 <DialogContent>
                     <TextField
                         label="Usuario"
-                        name="username"
-                        value={createForm.username}
-                        onChange={handleCreateChange}
+                        value={form.username}
+                        onChange={(event) =>
+                            setForm(
+                                (previous) => ({
+                                    ...previous,
+                                    username:
+                                    event.target.value,
+                                })
+                            )
+                        }
                         fullWidth
                         margin="normal"
-                        required
                     />
 
                     <TextField
                         label="Contraseña"
-                        name="password"
                         type="password"
-                        value={createForm.password}
-                        onChange={handleCreateChange}
-                        fullWidth
-                        margin="normal"
-                        required
-                    />
-
-                    <TextField
-                        label="Correo"
-                        name="email"
-                        type="email"
-                        value={createForm.email}
-                        onChange={handleCreateChange}
+                        value={form.password}
+                        onChange={(event) =>
+                            setForm(
+                                (previous) => ({
+                                    ...previous,
+                                    password:
+                                    event.target.value,
+                                })
+                            )
+                        }
                         fullWidth
                         margin="normal"
                     />
@@ -379,7 +314,7 @@ function UsersPage() {
 
                 <DialogActions>
                     <Button
-                        onClick={() => setOpenCreate(false)}
+                        onClick={() => setOpen(false)}
                     >
                         Cancelar
                     </Button>
@@ -387,10 +322,6 @@ function UsersPage() {
                     <Button
                         variant="contained"
                         onClick={handleCreate}
-                        disabled={
-                            !createForm.username.trim() ||
-                            !createForm.password.trim()
-                        }
                     >
                         Guardar
                     </Button>
@@ -398,10 +329,10 @@ function UsersPage() {
             </Dialog>
 
             <Dialog
-                open={openEdit}
-                onClose={() => setOpenEdit(false)}
+                open={editOpen}
+                onClose={() => setEditOpen(false)}
                 fullWidth
-                maxWidth="sm"
+                maxWidth="xs"
             >
                 <DialogTitle>
                     Editar usuario
@@ -410,34 +341,30 @@ function UsersPage() {
                 <DialogContent>
                     <TextField
                         label="Usuario"
-                        name="username"
                         value={editForm.username}
-                        onChange={handleEditChange}
-                        fullWidth
-                        margin="normal"
-                        required
-                    />
-
-                    <TextField
-                        label="Correo"
-                        name="email"
-                        type="email"
-                        value={editForm.email}
-                        onChange={handleEditChange}
+                        onChange={(event) =>
+                            setEditForm({
+                                username:
+                                event.target.value,
+                            })
+                        }
                         fullWidth
                         margin="normal"
                     />
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={() => setOpenEdit(false)}>
+                    <Button
+                        onClick={() =>
+                            setEditOpen(false)
+                        }
+                    >
                         Cancelar
                     </Button>
 
                     <Button
                         variant="contained"
                         onClick={handleUpdate}
-                        disabled={!editForm.username.trim()}
                     >
                         Actualizar
                     </Button>
@@ -445,42 +372,53 @@ function UsersPage() {
             </Dialog>
 
             <Dialog
-                open={openPassword}
-                onClose={() => setOpenPassword(false)}
+                open={deleteOpen}
+                onClose={() => {
+                    setDeleteOpen(false);
+                    setUserToDelete(null);
+                }}
                 fullWidth
-                maxWidth="sm"
+                maxWidth="xs"
             >
                 <DialogTitle>
-                    Cambiar contraseña
+                    Eliminar usuario
                 </DialogTitle>
 
                 <DialogContent>
-                    <TextField
-                        label="Nueva contraseña"
-                        type="password"
-                        value={newPassword}
-                        onChange={(event) =>
-                            setNewPassword(event.target.value)
-                        }
-                        fullWidth
-                        margin="normal"
-                        required
-                    />
+                    <Typography>
+                        ¿Deseas eliminar al usuario{" "}
+                        <strong>
+                            {userToDelete?.username}
+                        </strong>
+                        ?
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                    >
+                        El usuario solo podrá eliminarse si no
+                        tiene información relacionada.
+                    </Typography>
                 </DialogContent>
 
                 <DialogActions>
                     <Button
-                        onClick={() => setOpenPassword(false)}
+                        onClick={() => {
+                            setDeleteOpen(false);
+                            setUserToDelete(null);
+                        }}
                     >
                         Cancelar
                     </Button>
 
                     <Button
+                        color="error"
                         variant="contained"
-                        onClick={handleChangePassword}
-                        disabled={!newPassword.trim()}
+                        onClick={handleConfirmDelete}
                     >
-                        Cambiar contraseña
+                        Eliminar
                     </Button>
                 </DialogActions>
             </Dialog>

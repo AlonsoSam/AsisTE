@@ -8,11 +8,8 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    FormControl,
-    InputLabel,
-    MenuItem,
+    IconButton,
     Paper,
-    Select,
     Table,
     TableBody,
     TableCell,
@@ -20,44 +17,43 @@ import {
     TableHead,
     TableRow,
     TextField,
+    Tooltip,
     Typography,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
-import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import api from "../../services/api";
 
 function RolesPage() {
     const [roles, setRoles] = useState([]);
-    const [users, setUsers] = useState([]);
-
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const [openRole, setOpenRole] = useState(false);
-    const [openAssign, setOpenAssign] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
 
-    const [roleName, setRoleName] = useState("");
+    const [selectedRole, setSelectedRole] = useState(null);
+    const [roleToDelete, setRoleToDelete] = useState(null);
 
-    const [assignForm, setAssignForm] = useState({
-        userId: "",
-        roleId: "",
+    const [form, setForm] = useState({
+        roleName: "",
     });
 
-    const loadData = async () => {
+    const [editForm, setEditForm] = useState({
+        roleName: "",
+    });
+
+    const loadRoles = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const [rolesResponse, usersResponse] =
-                await Promise.all([
-                    api.get("/Roles"),
-                    api.get("/Users"),
-                ]);
-
-            setRoles(rolesResponse.data);
-            setUsers(usersResponse.data);
+            const response = await api.get("/Roles");
+            setRoles(response.data);
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -69,21 +65,24 @@ function RolesPage() {
     };
 
     useEffect(() => {
-        loadData();
+        loadRoles();
     }, []);
 
-    const handleCreateRole = async () => {
+    const handleCreate = async () => {
         try {
             setError("");
 
             await api.post("/Roles", {
-                roleName,
+                roleName: form.roleName,
             });
 
-            setRoleName("");
-            setOpenRole(false);
+            setForm({
+                roleName: "",
+            });
 
-            await loadData();
+            setOpen(false);
+
+            await loadRoles();
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -92,34 +91,71 @@ function RolesPage() {
         }
     };
 
-    const handleAssignChange = (event) => {
-        const { name, value } = event.target;
+    const handleOpenEdit = (role) => {
+        setSelectedRole(role);
 
-        setAssignForm((previous) => ({
-            ...previous,
-            [name]: value,
-        }));
+        setEditForm({
+            roleName: role.roleName || "",
+        });
+
+        setEditOpen(true);
     };
 
-    const handleAssignRole = async () => {
+    const handleUpdate = async () => {
+        if (!selectedRole) {
+            return;
+        }
+
         try {
             setError("");
 
-            await api.post("/Roles/assign", {
-                userId: assignForm.userId,
-                roleId: assignForm.roleId,
-            });
+            await api.put(
+                `/Roles/${selectedRole.roleId}`,
+                {
+                    name: editForm.roleName,
+                }
+            );
 
-            setAssignForm({
-                userId: "",
-                roleId: "",
-            });
+            setEditOpen(false);
+            setSelectedRole(null);
 
-            setOpenAssign(false);
+            await loadRoles();
         } catch (err) {
             setError(
                 err.response?.data?.message ||
-                "No se pudo asignar el rol"
+                "No se pudo actualizar el rol"
+            );
+        }
+    };
+
+    const handleOpenDelete = (role) => {
+        setRoleToDelete(role);
+        setDeleteOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!roleToDelete) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            await api.delete(
+                `/Roles/${roleToDelete.roleId}`
+            );
+
+            setDeleteOpen(false);
+            setRoleToDelete(null);
+
+            await loadRoles();
+        } catch (err) {
+            setDeleteOpen(false);
+            setRoleToDelete(null);
+
+            setError(
+                err.response?.data?.message ||
+                "No se pudo eliminar el rol"
             );
         }
     };
@@ -132,74 +168,95 @@ function RolesPage() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     mb: 3,
-                    gap: 2,
                 }}
             >
                 <Box>
-                    <Typography
-                        variant="h4"
-                        fontWeight="bold"
-                    >
+                    <Typography variant="h4">
                         Roles
                     </Typography>
 
                     <Typography color="text.secondary">
-                        Gestión de roles y permisos
+                        Gestión de roles del sistema
                     </Typography>
                 </Box>
 
-                <Box
-                    sx={{
-                        display: "flex",
-                        gap: 2,
-                    }}
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setOpen(true)}
                 >
-                    <Button
-                        variant="outlined"
-                        startIcon={<PersonAddAltIcon />}
-                        onClick={() => setOpenAssign(true)}
-                    >
-                        Asignar rol
-                    </Button>
-
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => setOpenRole(true)}
-                    >
-                        Nuevo rol
-                    </Button>
-                </Box>
+                    Nuevo rol
+                </Button>
             </Box>
 
             {error && (
                 <Alert
                     severity="error"
                     sx={{ mb: 2 }}
+                    onClose={() => setError("")}
                 >
                     {error}
                 </Alert>
             )}
 
-            <TableContainer component={Paper}>
+            <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{
+                    border: "1px solid #E4EBF3",
+                    borderRadius: 3,
+                    overflow: "hidden",
+                }}
+            >
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Nombre del rol</TableCell>
-                            <TableCell>ID</TableCell>
+                            <TableCell>
+                                Nombre del rol
+                            </TableCell>
+
+                            <TableCell align="right">
+                                Acciones
+                            </TableCell>
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {!loading &&
                             roles.map((role) => (
-                                <TableRow key={role.roleId}>
+                                <TableRow
+                                    key={role.roleId}
+                                    hover
+                                >
                                     <TableCell>
                                         {role.roleName}
                                     </TableCell>
 
-                                    <TableCell>
-                                        {role.roleId}
+                                    <TableCell align="right">
+                                        <Tooltip title="Editar">
+                                            <IconButton
+                                                onClick={() =>
+                                                    handleOpenEdit(
+                                                        role
+                                                    )
+                                                }
+                                            >
+                                                <EditIcon />
+                                            </IconButton>
+                                        </Tooltip>
+
+                                        <Tooltip title="Eliminar">
+                                            <IconButton
+                                                color="error"
+                                                onClick={() =>
+                                                    handleOpenDelete(
+                                                        role
+                                                    )
+                                                }
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Tooltip>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -207,50 +264,44 @@ function RolesPage() {
                 </Table>
             </TableContainer>
 
-            {!loading && roles.length === 0 && (
-                <Typography
-                    textAlign="center"
-                    color="text.secondary"
-                    sx={{ mt: 3 }}
-                >
-                    No hay roles registrados
-                </Typography>
-            )}
-
             <Dialog
-                open={openRole}
-                onClose={() => setOpenRole(false)}
+                open={open}
+                onClose={() => setOpen(false)}
                 fullWidth
-                maxWidth="sm"
+                maxWidth="xs"
             >
                 <DialogTitle>
-                    Nuevo rol
+                    Registrar rol
                 </DialogTitle>
 
                 <DialogContent>
                     <TextField
                         label="Nombre del rol"
-                        value={roleName}
+                        value={form.roleName}
                         onChange={(event) =>
-                            setRoleName(event.target.value)
+                            setForm({
+                                roleName:
+                                event.target.value,
+                            })
                         }
                         fullWidth
                         margin="normal"
-                        required
                     />
                 </DialogContent>
 
                 <DialogActions>
                     <Button
-                        onClick={() => setOpenRole(false)}
+                        onClick={() => setOpen(false)}
                     >
                         Cancelar
                     </Button>
 
                     <Button
                         variant="contained"
-                        onClick={handleCreateRole}
-                        disabled={!roleName.trim()}
+                        onClick={handleCreate}
+                        disabled={
+                            !form.roleName.trim()
+                        }
                     >
                         Guardar
                     </Button>
@@ -258,83 +309,99 @@ function RolesPage() {
             </Dialog>
 
             <Dialog
-                open={openAssign}
-                onClose={() => setOpenAssign(false)}
+                open={editOpen}
+                onClose={() => setEditOpen(false)}
                 fullWidth
-                maxWidth="sm"
+                maxWidth="xs"
             >
                 <DialogTitle>
-                    Asignar rol a usuario
+                    Editar rol
                 </DialogTitle>
 
                 <DialogContent>
-                    <FormControl
+                    <TextField
+                        label="Nombre del rol"
+                        value={editForm.roleName}
+                        onChange={(event) =>
+                            setEditForm({
+                                roleName:
+                                event.target.value,
+                            })
+                        }
                         fullWidth
                         margin="normal"
-                    >
-                        <InputLabel>
-                            Usuario
-                        </InputLabel>
-
-                        <Select
-                            name="userId"
-                            value={assignForm.userId}
-                            label="Usuario"
-                            onChange={handleAssignChange}
-                        >
-                            {users.map((user) => (
-                                <MenuItem
-                                    key={user.userId}
-                                    value={user.userId}
-                                >
-                                    {user.username}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <FormControl
-                        fullWidth
-                        margin="normal"
-                    >
-                        <InputLabel>
-                            Rol
-                        </InputLabel>
-
-                        <Select
-                            name="roleId"
-                            value={assignForm.roleId}
-                            label="Rol"
-                            onChange={handleAssignChange}
-                        >
-                            {roles.map((role) => (
-                                <MenuItem
-                                    key={role.roleId}
-                                    value={role.roleId}
-                                >
-                                    {role.roleName}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    />
                 </DialogContent>
 
                 <DialogActions>
                     <Button
-                        onClick={() => setOpenAssign(false)}
+                        onClick={() =>
+                            setEditOpen(false)
+                        }
                     >
                         Cancelar
                     </Button>
 
                     <Button
                         variant="contained"
-                        onClick={handleAssignRole}
+                        onClick={handleUpdate}
                         disabled={
-                            !assignForm.userId ||
-                            !assignForm.roleId
+                            !editForm.roleName.trim()
                         }
                     >
-                        Asignar
+                        Actualizar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={deleteOpen}
+                onClose={() => {
+                    setDeleteOpen(false);
+                    setRoleToDelete(null);
+                }}
+                fullWidth
+                maxWidth="xs"
+            >
+                <DialogTitle>
+                    Eliminar rol
+                </DialogTitle>
+
+                <DialogContent>
+                    <Typography>
+                        ¿Deseas eliminar el rol{" "}
+                        <strong>
+                            {roleToDelete?.roleName}
+                        </strong>
+                        ?
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                    >
+                        El rol solo podrá eliminarse si no
+                        está asignado a ningún usuario.
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() => {
+                            setDeleteOpen(false);
+                            setRoleToDelete(null);
+                        }}
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        color="error"
+                        variant="contained"
+                        onClick={handleConfirmDelete}
+                    >
+                        Eliminar
                     </Button>
                 </DialogActions>
             </Dialog>

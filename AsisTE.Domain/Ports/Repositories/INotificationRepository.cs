@@ -10,4 +10,5 @@ public interface INotificationRepository
     Task<List<Notification>> GetByStatusAsync(string status);
     Task AddAsync(Notification notification);
     Task UpdateAsync(Notification notification);
+    Task DeleteAsync(Notification notification);
 }
