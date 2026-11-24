@@ -5,6 +5,7 @@ import {
     Routes,
 } from "react-router-dom";
 
+import MainLayout from "../layouts/MainLayout";
 import LoginPage from "../pages/Login/LoginPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 
@@ -28,13 +29,17 @@ function AppRoutes() {
                 />
 
                 <Route
-                    path="/dashboard"
                     element={
                         <ProtectedRoute>
-                            <DashboardPage />
+                            <MainLayout />
                         </ProtectedRoute>
                     }
-                />
+                >
+                    <Route
+                        path="/dashboard"
+                        element={<DashboardPage />}
+                    />
+                </Route>
             </Routes>
         </BrowserRouter>
     );
