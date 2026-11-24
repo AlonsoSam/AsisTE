@@ -8,7 +8,7 @@ namespace AsisTE.Persistence.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Administrador,Docente")]
 public class NotificationsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
