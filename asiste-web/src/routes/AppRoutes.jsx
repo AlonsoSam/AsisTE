@@ -8,6 +8,7 @@ import {
 import MainLayout from "../layouts/MainLayout";
 import LoginPage from "../pages/Login/LoginPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
+import StudentsPage from "../pages/Students/StudentsPage";
 
 function ProtectedRoute({ children }) {
     const token = localStorage.getItem("token");
@@ -38,6 +39,10 @@ function AppRoutes() {
                     <Route
                         path="/dashboard"
                         element={<DashboardPage />}
+                    />
+                    <Route
+                        path="/students"
+                        element={<StudentsPage />}
                     />
                 </Route>
             </Routes>
