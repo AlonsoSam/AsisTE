@@ -1,11 +1,15 @@
-import { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+    Outlet,
+    useLocation,
+    useNavigate,
+} from "react-router-dom";
+
 import {
     AppBar,
     Box,
     Divider,
     Drawer,
-    IconButton,
     List,
     ListItemButton,
     ListItemIcon,
@@ -23,13 +27,15 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import PeopleIcon from "@mui/icons-material/People";
 import SecurityIcon from "@mui/icons-material/Security";
 import LogoutIcon from "@mui/icons-material/Logout";
+
 import { isAdministrator } from "../services/auth";
 
 const drawerWidth = 240;
 
 function MainLayout() {
     const navigate = useNavigate();
-    const [selected, setSelected] = useState("Dashboard");
+    const location = useLocation();
+
     const administrator = isAdministrator();
 
     const username =
@@ -82,6 +88,23 @@ function MainLayout() {
             : []),
     ];
 
+    const getSelectedItem = () => {
+        const item = menuItems.find(
+            (menuItem) =>
+                menuItem.path === location.pathname
+        );
+
+        return item?.text || "Dashboard";
+    };
+
+    const [selected, setSelected] = useState(
+        getSelectedItem()
+    );
+
+    useEffect(() => {
+        setSelected(getSelectedItem());
+    }, [location.pathname]);
+
     const handleNavigate = (item) => {
         setSelected(item.text);
         navigate(item.path);
@@ -96,23 +119,68 @@ function MainLayout() {
     };
 
     return (
-        <Box sx={{ display: "flex", minHeight: "100vh" }}>
+        <Box
+            sx={{
+                display: "flex",
+                minHeight: "100vh",
+                bgcolor: "background.default",
+            }}
+        >
             <AppBar
                 position="fixed"
                 sx={{
-                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    zIndex: (theme) =>
+                        theme.zIndex.drawer + 1,
+                    bgcolor: "#16324F",
+                    boxShadow: "none",
+                    borderBottom:
+                        "1px solid rgba(255,255,255,0.08)",
                 }}
             >
                 <Toolbar>
-                    <Typography
-                        variant="h6"
-                        fontWeight="bold"
-                        sx={{ flexGrow: 1 }}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.2,
+                            flexGrow: 1,
+                        }}
                     >
-                        AsisTE
-                    </Typography>
+                        <Box
+                            sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 1.5,
+                                bgcolor: "#1F6FB2",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#FFFFFF",
+                                fontWeight: 800,
+                                fontSize: 18,
+                            }}
+                        >
+                            A
+                        </Box>
 
-                    <Typography>
+                        <Typography
+                            variant="h6"
+                            fontWeight={700}
+                            sx={{
+                                letterSpacing: 0.3,
+                            }}
+                        >
+                            AsisTE
+                        </Typography>
+                    </Box>
+
+                    <Typography
+                        sx={{
+                            fontWeight: 600,
+                            fontSize: 15,
+                            color: "#F4F7FA",
+                        }}
+                    >
                         {username}
                     </Typography>
                 </Toolbar>
@@ -123,42 +191,126 @@ function MainLayout() {
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
+
                     "& .MuiDrawer-paper": {
                         width: drawerWidth,
                         boxSizing: "border-box",
+                        borderRight:
+                            "1px solid #E1E7ED",
+                        bgcolor: "#FFFFFF",
                     },
                 }}
             >
                 <Toolbar />
 
-                <Box sx={{ overflow: "auto" }}>
-                    <List>
+                <Box
+                    sx={{
+                        overflow: "auto",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
+                    }}
+                >
+                    <List
+                        sx={{
+                            px: 1,
+                            pt: 1.5,
+                        }}
+                    >
                         {menuItems.map((item) => (
                             <ListItemButton
                                 key={item.text}
-                                selected={selected === item.text}
-                                onClick={() => handleNavigate(item)}
+                                selected={
+                                    selected === item.text
+                                }
+                                onClick={() =>
+                                    handleNavigate(item)
+                                }
+                                sx={{
+                                    mb: 0.5,
+                                    borderRadius: 1.5,
+                                    px: 1.5,
+
+                                    "&.Mui-selected": {
+                                        bgcolor: "#EAF2F8",
+                                        color: "#16324F",
+                                    },
+
+                                    "&.Mui-selected:hover": {
+                                        bgcolor: "#EAF2F8",
+                                    },
+
+                                    "&:hover": {
+                                        bgcolor: "#F4F7FA",
+                                    },
+                                }}
                             >
-                                <ListItemIcon>
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 40,
+                                        color:
+                                            selected ===
+                                            item.text
+                                                ? "#1F6FB2"
+                                                : "#667788",
+                                    }}
+                                >
                                     {item.icon}
                                 </ListItemIcon>
 
                                 <ListItemText
                                     primary={item.text}
+                                    primaryTypographyProps={{
+                                        fontWeight:
+                                            selected ===
+                                            item.text
+                                                ? 600
+                                                : 500,
+                                        fontSize: 15,
+                                    }}
                                 />
                             </ListItemButton>
                         ))}
                     </List>
 
+                    <Box sx={{ flexGrow: 1 }} />
+
                     <Divider />
 
-                    <List>
-                        <ListItemButton onClick={handleLogout}>
-                            <ListItemIcon>
+                    <List
+                        sx={{
+                            px: 1,
+                            py: 1.5,
+                        }}
+                    >
+                        <ListItemButton
+                            onClick={handleLogout}
+                            sx={{
+                                borderRadius: 1.5,
+                                px: 1.5,
+
+                                "&:hover": {
+                                    bgcolor: "#FFF1F0",
+                                    color: "#B42318",
+                                },
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 40,
+                                    color: "#667788",
+                                }}
+                            >
                                 <LogoutIcon />
                             </ListItemIcon>
 
-                            <ListItemText primary="Cerrar sesión" />
+                            <ListItemText
+                                primary="Cerrar sesión"
+                                primaryTypographyProps={{
+                                    fontWeight: 500,
+                                    fontSize: 15,
+                                }}
+                            />
                         </ListItemButton>
                     </List>
                 </Box>
@@ -168,9 +320,12 @@ function MainLayout() {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    bgcolor: "#f5f6f8",
+                    bgcolor: "background.default",
                     minHeight: "100vh",
-                    p: 3,
+                    p: {
+                        xs: 2,
+                        md: 4,
+                    },
                 }}
             >
                 <Toolbar />
