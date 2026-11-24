@@ -3,19 +3,31 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
     palette: {
         primary: {
-            main: "#1F6FB2",
-            dark: "#16324F",
+            main: "#2F80ED",
+            dark: "#0F2742",
+            light: "#E8F2FF",
         },
+
         secondary: {
-            main: "#2E7D4F",
+            main: "#36C2B4",
         },
+
+        success: {
+            main: "#2FA36B",
+        },
+
+        error: {
+            main: "#E25858",
+        },
+
         background: {
-            default: "#F4F7FA",
+            default: "#F5F8FC",
             paper: "#FFFFFF",
         },
+
         text: {
-            primary: "#1F2933",
-            secondary: "#667788",
+            primary: "#132238",
+            secondary: "#6C7A89",
         },
     },
 
@@ -24,18 +36,24 @@ const theme = createTheme({
             '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
 
         h4: {
+            fontWeight: 750,
+            color: "#0F2742",
+            letterSpacing: "-0.5px",
+        },
+
+        h5: {
             fontWeight: 700,
-            color: "#16324F",
+            color: "#0F2742",
         },
 
         button: {
             textTransform: "none",
-            fontWeight: 600,
+            fontWeight: 650,
         },
     },
 
     shape: {
-        borderRadius: 8,
+        borderRadius: 12,
     },
 
     components: {
@@ -43,6 +61,9 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     boxShadow: "none",
+                    borderRadius: 10,
+                    paddingLeft: 18,
+                    paddingRight: 18,
                 },
             },
         },
@@ -58,7 +79,7 @@ const theme = createTheme({
         MuiTableHead: {
             styleOverrides: {
                 root: {
-                    backgroundColor: "#F4F7FA",
+                    backgroundColor: "#F3F7FB",
                 },
             },
         },
@@ -67,8 +88,14 @@ const theme = createTheme({
             styleOverrides: {
                 head: {
                     fontWeight: 700,
-                    color: "#16324F",
+                    color: "#0F2742",
                 },
+            },
+        },
+
+        MuiTextField: {
+            defaultProps: {
+                variant: "outlined",
             },
         },
     },

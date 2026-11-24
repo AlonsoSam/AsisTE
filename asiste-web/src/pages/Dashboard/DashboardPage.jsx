@@ -105,22 +105,33 @@ function DashboardPage() {
         {
             title: "Estudiantes",
             value: summary.students,
-            icon: <SchoolIcon fontSize="large" />,
+            icon: <SchoolIcon />,
+            color: "#2F80ED",
+            background: "#E8F2FF",
         },
+
         {
             title: "Asistencias de hoy",
             value: summary.todayAttendances,
-            icon: <FactCheckIcon fontSize="large" />,
+            icon: <FactCheckIcon />,
+            color: "#2FA36B",
+            background: "#E8F7EF",
         },
+
         {
             title: "Notificaciones pendientes",
             value: summary.pendingNotifications,
-            icon: <NotificationsIcon fontSize="large" />,
+            icon: <NotificationsIcon />,
+            color: "#F39C3D",
+            background: "#FFF4E5",
         },
+
         {
             title: "Dispositivos activos",
             value: summary.activeDevices,
-            icon: <DevicesIcon fontSize="large" />,
+            icon: <DevicesIcon />,
+            color: "#36A7B4",
+            background: "#E7F8FA",
         },
     ];
 
@@ -128,7 +139,6 @@ function DashboardPage() {
         <Box>
             <Typography
                 variant="h4"
-                fontWeight="bold"
                 gutterBottom
             >
                 Dashboard
@@ -171,33 +181,97 @@ function DashboardPage() {
                                 md: 3,
                             }}
                         >
-                            <Card>
-                                <CardContent>
+                            <Card
+                                elevation={0}
+                                sx={{
+                                    height: "100%",
+
+                                    border:
+                                        "1px solid #E4EBF3",
+
+                                    borderRadius: 3,
+
+                                    background:
+                                        "linear-gradient(135deg, #FFFFFF 0%, #FAFCFF 100%)",
+
+                                    boxShadow:
+                                        "0 8px 24px rgba(15,39,66,0.06)",
+
+                                    transition:
+                                        "all 0.2s ease",
+
+                                    "&:hover": {
+                                        transform:
+                                            "translateY(-4px)",
+
+                                        boxShadow:
+                                            "0 14px 30px rgba(15,39,66,0.10)",
+                                    },
+                                }}
+                            >
+                                <CardContent
+                                    sx={{
+                                        p: 2.5,
+                                    }}
+                                >
                                     <Box
                                         sx={{
                                             display: "flex",
                                             justifyContent:
                                                 "space-between",
-                                            alignItems: "center",
+                                            alignItems:
+                                                "center",
                                         }}
                                     >
                                         <Box>
                                             <Typography
                                                 color="text.secondary"
-                                                sx={{ mb: 1 }}
+                                                sx={{
+                                                    mb: 1,
+                                                    fontWeight:
+                                                        500,
+                                                }}
                                             >
                                                 {card.title}
                                             </Typography>
 
                                             <Typography
                                                 variant="h4"
-                                                fontWeight="bold"
+                                                fontWeight={750}
                                             >
                                                 {card.value}
                                             </Typography>
                                         </Box>
 
-                                        {card.icon}
+                                        <Box
+                                            sx={{
+                                                width: 54,
+                                                height: 54,
+
+                                                borderRadius: 2.5,
+
+                                                bgcolor:
+                                                card.background,
+
+                                                color:
+                                                card.color,
+
+                                                display:
+                                                    "flex",
+
+                                                alignItems:
+                                                    "center",
+
+                                                justifyContent:
+                                                    "center",
+
+                                                "& svg": {
+                                                    fontSize: 28,
+                                                },
+                                            }}
+                                        >
+                                            {card.icon}
+                                        </Box>
                                     </Box>
                                 </CardContent>
                             </Card>

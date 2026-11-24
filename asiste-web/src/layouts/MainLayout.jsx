@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
     Outlet,
     useLocation,
@@ -7,6 +8,7 @@ import {
 
 import {
     AppBar,
+    Avatar,
     Box,
     Divider,
     Drawer,
@@ -30,7 +32,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 
 import { isAdministrator } from "../services/auth";
 
-const drawerWidth = 240;
+const drawerWidth = 250;
 
 function MainLayout() {
     const navigate = useNavigate();
@@ -72,6 +74,7 @@ function MainLayout() {
             icon: <NotificationsIcon />,
             path: "/notifications",
         },
+
         ...(administrator
             ? [
                 {
@@ -131,10 +134,12 @@ function MainLayout() {
                 sx={{
                     zIndex: (theme) =>
                         theme.zIndex.drawer + 1,
-                    bgcolor: "#16324F",
-                    boxShadow: "none",
-                    borderBottom:
-                        "1px solid rgba(255,255,255,0.08)",
+
+                    background:
+                        "linear-gradient(90deg, #0F2742 0%, #143C63 100%)",
+
+                    boxShadow:
+                        "0 4px 18px rgba(15,39,66,0.18)",
                 }}
             >
                 <Toolbar>
@@ -142,22 +147,29 @@ function MainLayout() {
                         sx={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 1.2,
+                            gap: 1.3,
                             flexGrow: 1,
                         }}
                     >
                         <Box
                             sx={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 1.5,
-                                bgcolor: "#1F6FB2",
+                                width: 38,
+                                height: 38,
+                                borderRadius: 2.2,
+
+                                background:
+                                    "linear-gradient(135deg, #2F80ED, #36C2B4)",
+
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
+
                                 color: "#FFFFFF",
                                 fontWeight: 800,
-                                fontSize: 18,
+                                fontSize: 19,
+
+                                boxShadow:
+                                    "0 4px 12px rgba(47,128,237,0.35)",
                             }}
                         >
                             A
@@ -167,22 +179,43 @@ function MainLayout() {
                             variant="h6"
                             fontWeight={700}
                             sx={{
-                                letterSpacing: 0.3,
+                                letterSpacing: 0.4,
                             }}
                         >
                             AsisTE
                         </Typography>
                     </Box>
 
-                    <Typography
+                    <Box
                         sx={{
-                            fontWeight: 600,
-                            fontSize: 15,
-                            color: "#F4F7FA",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.3,
                         }}
                     >
-                        {username}
-                    </Typography>
+                        <Avatar
+                            sx={{
+                                width: 34,
+                                height: 34,
+                                bgcolor: "#2F80ED",
+                                fontSize: 14,
+                                fontWeight: 700,
+                            }}
+                        >
+                            {username
+                                .charAt(0)
+                                .toUpperCase()}
+                        </Avatar>
+
+                        <Typography
+                            sx={{
+                                fontWeight: 600,
+                                fontSize: 15,
+                            }}
+                        >
+                            {username}
+                        </Typography>
+                    </Box>
                 </Toolbar>
             </AppBar>
 
@@ -195,8 +228,10 @@ function MainLayout() {
                     "& .MuiDrawer-paper": {
                         width: drawerWidth,
                         boxSizing: "border-box",
+
                         borderRight:
-                            "1px solid #E1E7ED",
+                            "1px solid #E5ECF3",
+
                         bgcolor: "#FFFFFF",
                     },
                 }}
@@ -205,7 +240,6 @@ function MainLayout() {
 
                 <Box
                     sx={{
-                        overflow: "auto",
                         display: "flex",
                         flexDirection: "column",
                         height: "100%",
@@ -213,8 +247,8 @@ function MainLayout() {
                 >
                     <List
                         sx={{
-                            px: 1,
-                            pt: 1.5,
+                            px: 1.3,
+                            pt: 2,
                         }}
                     >
                         {menuItems.map((item) => (
@@ -227,32 +261,40 @@ function MainLayout() {
                                     handleNavigate(item)
                                 }
                                 sx={{
-                                    mb: 0.5,
-                                    borderRadius: 1.5,
+                                    mb: 0.7,
                                     px: 1.5,
+                                    borderRadius: 2,
+
+                                    transition:
+                                        "all 0.2s ease",
 
                                     "&.Mui-selected": {
-                                        bgcolor: "#EAF2F8",
-                                        color: "#16324F",
+                                        bgcolor: "#E8F2FF",
+                                        color: "#0F2742",
+                                        boxShadow:
+                                            "inset 4px 0 0 #2F80ED",
                                     },
 
                                     "&.Mui-selected:hover": {
-                                        bgcolor: "#EAF2F8",
+                                        bgcolor: "#E8F2FF",
                                     },
 
                                     "&:hover": {
-                                        bgcolor: "#F4F7FA",
+                                        bgcolor: "#F3F7FB",
+                                        transform:
+                                            "translateX(2px)",
                                     },
                                 }}
                             >
                                 <ListItemIcon
                                     sx={{
-                                        minWidth: 40,
+                                        minWidth: 42,
+
                                         color:
                                             selected ===
                                             item.text
-                                                ? "#1F6FB2"
-                                                : "#667788",
+                                                ? "#2F80ED"
+                                                : "#74879A",
                                     }}
                                 >
                                     {item.icon}
@@ -264,8 +306,9 @@ function MainLayout() {
                                         fontWeight:
                                             selected ===
                                             item.text
-                                                ? 600
+                                                ? 650
                                                 : 500,
+
                                         fontSize: 15,
                                     }}
                                 />
@@ -277,28 +320,22 @@ function MainLayout() {
 
                     <Divider />
 
-                    <List
-                        sx={{
-                            px: 1,
-                            py: 1.5,
-                        }}
-                    >
+                    <List sx={{ p: 1.3 }}>
                         <ListItemButton
                             onClick={handleLogout}
                             sx={{
-                                borderRadius: 1.5,
-                                px: 1.5,
+                                borderRadius: 2,
 
                                 "&:hover": {
-                                    bgcolor: "#FFF1F0",
-                                    color: "#B42318",
+                                    bgcolor: "#FFF1F1",
+                                    color: "#D64545",
                                 },
                             }}
                         >
                             <ListItemIcon
                                 sx={{
-                                    minWidth: 40,
-                                    color: "#667788",
+                                    minWidth: 42,
+                                    color: "#74879A",
                                 }}
                             >
                                 <LogoutIcon />
@@ -306,10 +343,6 @@ function MainLayout() {
 
                             <ListItemText
                                 primary="Cerrar sesión"
-                                primaryTypographyProps={{
-                                    fontWeight: 500,
-                                    fontSize: 15,
-                                }}
                             />
                         </ListItemButton>
                     </List>
@@ -320,8 +353,12 @@ function MainLayout() {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    bgcolor: "background.default",
+
+                    background:
+                        "linear-gradient(180deg, #F5F8FC 0%, #F8FAFD 100%)",
+
                     minHeight: "100vh",
+
                     p: {
                         xs: 2,
                         md: 4,
