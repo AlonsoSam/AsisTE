@@ -16,11 +16,21 @@ import NotificationsPage from "../pages/Notifications/NotificationsPage";
 import UsersPage from "../pages/Users/UsersPage";
 import RolesPage from "../pages/Roles/RolesPage";
 
+import { isAdministrator } from "../services/auth";
+
 function ProtectedRoute({ children }) {
     const token = localStorage.getItem("token");
 
     if (!token) {
         return <Navigate to="/" replace />;
+    }
+
+    return children;
+}
+
+function AdminRoute({ children }) {
+    if (!isAdministrator()) {
+        return <Navigate to="/dashboard" replace />;
     }
 
     return children;
@@ -46,33 +56,48 @@ function AppRoutes() {
                         path="/dashboard"
                         element={<DashboardPage />}
                     />
+
                     <Route
                         path="/students"
                         element={<StudentsPage />}
                     />
+
                     <Route
                         path="/guardians"
                         element={<GuardiansPage />}
                     />
+
                     <Route
                         path="/attendances"
                         element={<AttendancesPage />}
                     />
+
                     <Route
                         path="/devices"
                         element={<DevicesPage />}
                     />
+
                     <Route
                         path="/notifications"
                         element={<NotificationsPage />}
                     />
+
                     <Route
                         path="/users"
-                        element={<UsersPage />}
+                        element={
+                            <AdminRoute>
+                                <UsersPage />
+                            </AdminRoute>
+                        }
                     />
+
                     <Route
                         path="/roles"
-                        element={<RolesPage />}
+                        element={
+                            <AdminRoute>
+                                <RolesPage />
+                            </AdminRoute>
+                        }
                     />
                 </Route>
             </Routes>

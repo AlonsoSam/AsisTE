@@ -23,12 +23,14 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import PeopleIcon from "@mui/icons-material/People";
 import SecurityIcon from "@mui/icons-material/Security";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { isAdministrator } from "../services/auth";
 
 const drawerWidth = 240;
 
 function MainLayout() {
     const navigate = useNavigate();
     const [selected, setSelected] = useState("Dashboard");
+    const administrator = isAdministrator();
 
     const username =
         localStorage.getItem("username") || "Usuario";
@@ -64,16 +66,20 @@ function MainLayout() {
             icon: <NotificationsIcon />,
             path: "/notifications",
         },
-        {
-            text: "Usuarios",
-            icon: <PeopleIcon />,
-            path: "/users",
-        },
-        {
-            text: "Roles",
-            icon: <SecurityIcon />,
-            path: "/roles",
-        },
+        ...(administrator
+            ? [
+                {
+                    text: "Usuarios",
+                    icon: <PeopleIcon />,
+                    path: "/users",
+                },
+                {
+                    text: "Roles",
+                    icon: <SecurityIcon />,
+                    path: "/roles",
+                },
+            ]
+            : []),
     ];
 
     const handleNavigate = (item) => {
