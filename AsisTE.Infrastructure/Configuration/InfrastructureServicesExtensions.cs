@@ -8,8 +8,6 @@ using AsisTE.Domain.Ports.UnitOfWork;
 using AsisTE.Infrastructure.Adapters.UnitOfWork;
 using AsisTE.Application.Ports.Services;
 using AsisTE.Infrastructure.Adapters.Services;
-using AsisTE.Application.Ports.Services;
-using AsisTE.Infrastructure.Adapters.Services;
 
 namespace AsisTE.Infrastructure.Configuration;
 
