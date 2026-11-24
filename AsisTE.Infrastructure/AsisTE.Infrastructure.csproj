@@ -2,9 +2,11 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AsisTE.Domain\AsisTE.Domain.csproj" />
+      <ProjectReference Include="..\AsisTE.Application\AsisTE.Application.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

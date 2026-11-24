@@ -1,3 +1,4 @@
+using AsisTE.Application.Ports.Services;
 using AsisTE.Domain.Ports.UnitOfWork;
 using MediatR;
 
@@ -6,22 +7,29 @@ namespace AsisTE.Application.UseCases.Users.Commands;
 public class ChangePasswordCommand : IRequest<bool>
 {
     public Guid Id { get; set; }
-    public string PasswordHash { get; set; } = null!;
+
+    public string Password { get; set; } = null!;
 }
 
-internal class ChangePasswordCommandHandler(IUnitOfWork unitOfWork)
+internal class ChangePasswordCommandHandler(
+    IUnitOfWork unitOfWork,
+    IPasswordService passwordService)
     : IRequestHandler<ChangePasswordCommand, bool>
 {
     public async Task<bool> Handle(
         ChangePasswordCommand request,
         CancellationToken cancellationToken)
     {
-        var user = await unitOfWork.Users.GetByIdAsync(request.Id);
+        var user =
+            await unitOfWork.Users.GetByIdAsync(request.Id);
 
         if (user == null)
-            throw new KeyNotFoundException("Usuario no encontrado");
+            throw new KeyNotFoundException(
+                "Usuario no encontrado"
+            );
 
-        user.PasswordHash = request.PasswordHash;
+        user.PasswordHash =
+            passwordService.HashPassword(request.Password);
 
         await unitOfWork.Users.UpdateAsync(user);
 

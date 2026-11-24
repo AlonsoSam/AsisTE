@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AsisTE.Domain.Ports.UnitOfWork;
 using AsisTE.Infrastructure.Adapters.UnitOfWork;
+using AsisTE.Application.Ports.Services;
+using AsisTE.Infrastructure.Adapters.Services;
 
 namespace AsisTE.Infrastructure.Configuration;
 
@@ -32,6 +34,7 @@ public static class InfrastructureServicesExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IPasswordService, PasswordService>();
 
         return services;
     }
