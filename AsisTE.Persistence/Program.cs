@@ -10,40 +10,70 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+var frontendUrl =
+    builder.Configuration["Frontend:Url"]
+    ?? "http://localhost:5173";
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendPolicy", policy =>
-    {
-        policy
-            .WithOrigins("http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
+    options.AddPolicy(
+        "FrontendPolicy",
+        policy =>
+        {
+            policy
+                .WithOrigins(
+                    frontendUrl.TrimEnd('/')
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    );
 });
 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Ingresa el token JWT"
-    });
-
-    options.AddSecurityRequirement(document =>
-        new OpenApiSecurityRequirement
+    options.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
         {
-            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
-        });
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description =
+                "Ingresa el token JWT"
+        }
+    );
+
+    options.AddSecurityRequirement(
+        document =>
+            new OpenApiSecurityRequirement
+            {
+                [
+                    new OpenApiSecuritySchemeReference(
+                        "Bearer",
+                        document
+                    )
+                ] = []
+            }
+    );
 });
 
-var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtKey =
+    builder.Configuration["Jwt:Key"];
 
-builder.Services.AddAuthentication(
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException(
+        "La clave JWT no está configurada"
+    );
+}
+
+builder.Services
+    .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme
     )
     .AddJwtBearer(options =>
@@ -57,23 +87,31 @@ builder.Services.AddAuthentication(
                 ValidateIssuerSigningKey = true,
 
                 ValidIssuer =
-                    builder.Configuration["Jwt:Issuer"],
+                    builder.Configuration[
+                        "Jwt:Issuer"
+                    ],
 
                 ValidAudience =
-                    builder.Configuration["Jwt:Audience"],
+                    builder.Configuration[
+                        "Jwt:Audience"
+                    ],
 
                 IssuerSigningKey =
                     new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtKey!)
+                        Encoding.UTF8.GetBytes(
+                            jwtKey
+                        )
                     )
             };
     });
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(
+    builder.Configuration
+);
 
-// con esto MediatR encuentra los handlers que tenemos en Application
+// con esto MediatR encuentra los handlers de Application
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(
         typeof(AssemblyReference).Assembly
@@ -86,9 +124,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 
-app.UseHttpsRedirection();
+    app.UseHttpsRedirection();
+}
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
 

@@ -1,0 +1,16 @@
+**/bin
+**/obj
+
+.git
+.gitignore
+
+.idea
+.vscode
+
+.DS_Store
+
+asiste-web/node_modules
+asiste-web/dist
+
+*.user
+*.suo
