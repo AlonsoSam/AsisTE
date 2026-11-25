@@ -191,10 +191,17 @@ function AttendancesPage() {
             };
         }
 
-        if (normalized === "tarde") {
+        if (normalized === "tardanza") {
             return {
                 bgcolor: "#FFF4E5",
                 color: "#C97A17",
+            };
+        }
+
+        if (normalized === "justificado") {
+            return {
+                bgcolor: "#EAF2FF",
+                color: "#2F6FCC",
             };
         }
 
@@ -202,6 +209,29 @@ function AttendancesPage() {
             bgcolor: "#FFF0F0",
             color: "#D64545",
         };
+    };
+
+    const getStatusLabel = (status) => {
+        const normalized =
+            status?.toLowerCase();
+
+        if (normalized === "puntual") {
+            return "Puntual";
+        }
+
+        if (normalized === "tardanza") {
+            return "Tarde";
+        }
+
+        if (normalized === "ausente") {
+            return "Ausente";
+        }
+
+        if (normalized === "justificado") {
+            return "Justificado";
+        }
+
+        return status;
     };
 
     const handleChange = (event) => {
@@ -223,14 +253,14 @@ function AttendancesPage() {
                 "/Attendances",
                 {
                     studentId:
-                    form.studentId,
+                        form.studentId,
 
                     deviceId:
                         form.deviceId ||
                         null,
 
                     attendanceDate:
-                    form.attendanceDate,
+                        form.attendanceDate,
 
                     entryTime:
                         form.entryTime
@@ -243,7 +273,7 @@ function AttendancesPage() {
                             : null,
 
                     status:
-                    form.status,
+                        form.status,
                 }
             );
 
@@ -258,7 +288,9 @@ function AttendancesPage() {
 
             setOpen(false);
 
-            setSuccess("Asistencia registrada correctamente");
+            setSuccess(
+                "Asistencia registrada correctamente"
+            );
 
             await loadAttendances();
         } catch (err) {
@@ -321,14 +353,16 @@ function AttendancesPage() {
                             : null,
 
                     status:
-                    editForm.status,
+                        editForm.status,
                 }
             );
 
             setEditOpen(false);
             setSelectedAttendance(null);
 
-            setSuccess("Asistencia actualizada correctamente");
+            setSuccess(
+                "Asistencia actualizada correctamente"
+            );
 
             await loadAttendances();
         } catch (err) {
@@ -343,7 +377,6 @@ function AttendancesPage() {
         async (date) => {
             setFilterDate(date);
 
-            // trabajamos un filtro a la vez
             setFilterStatus("");
 
             if (!date) {
@@ -378,7 +411,6 @@ function AttendancesPage() {
         async (status) => {
             setFilterStatus(status);
 
-            // trabajamos un filtro a la vez
             setFilterDate("");
 
             if (!status) {
@@ -467,7 +499,10 @@ function AttendancesPage() {
             {error && (
                 <Alert
                     severity="error"
-                    sx={{ mb: 2, borderRadius: 2 }}
+                    sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                    }}
                     onClose={() =>
                         setError("")
                     }
@@ -479,8 +514,13 @@ function AttendancesPage() {
             {success && (
                 <Alert
                     severity="success"
-                    sx={{ mb: 2, borderRadius: 2 }}
-                    onClose={() => setSuccess("")}
+                    sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                    }}
+                    onClose={() =>
+                        setSuccess("")
+                    }
                 >
                     {success}
                 </Alert>
@@ -548,7 +588,7 @@ function AttendancesPage() {
                             </MenuItem>
 
                             <MenuItem value="tardanza">
-                                Tardanza
+                                Tarde
                             </MenuItem>
 
                             <MenuItem value="ausente">
@@ -620,121 +660,165 @@ function AttendancesPage() {
 
                     <TableBody>
                         {loading
-                            ? Array.from({ length: 4 }).map((_, index) => (
-                                <TableRow key={index}>
-                                    {Array.from({ length: 7 }).map((_, cellIndex) => (
-                                        <TableCell key={cellIndex}>
-                                            <Skeleton height={32} />
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
+                            ? Array.from({
+                                  length: 4,
+                              }).map(
+                                  (
+                                      _,
+                                      index
+                                  ) => (
+                                      <TableRow
+                                          key={
+                                              index
+                                          }
+                                      >
+                                          {Array.from(
+                                              {
+                                                  length: 7,
+                                              }
+                                          ).map(
+                                              (
+                                                  _,
+                                                  cellIndex
+                                              ) => (
+                                                  <TableCell
+                                                      key={
+                                                          cellIndex
+                                                      }
+                                                  >
+                                                      <Skeleton
+                                                          height={
+                                                              32
+                                                          }
+                                                      />
+                                                  </TableCell>
+                                              )
+                                          )}
+                                      </TableRow>
+                                  )
+                              )
                             : attendances.map(
-                                (
-                                    attendance
-                                ) => (
-                                    <TableRow
-                                        key={
-                                            attendance.attendanceId
-                                        }
-                                        hover
-                                    >
-                                        <TableCell>
-                                            {getStudentName(
-                                                attendance.studentId
-                                            )}
-                                        </TableCell>
+                                  (
+                                      attendance
+                                  ) => (
+                                      <TableRow
+                                          key={
+                                              attendance.attendanceId
+                                          }
+                                          hover
+                                      >
+                                          <TableCell>
+                                              {getStudentName(
+                                                  attendance.studentId
+                                              )}
+                                          </TableCell>
 
-                                        <TableCell>
-                                            {
-                                                attendance.attendanceDate
-                                            }
-                                        </TableCell>
+                                          <TableCell>
+                                              {
+                                                  attendance.attendanceDate
+                                              }
+                                          </TableCell>
 
-                                        <TableCell>
-                                            {formatTime(
-                                                attendance.entryTime
-                                            )}
-                                        </TableCell>
+                                          <TableCell>
+                                              {formatTime(
+                                                  attendance.entryTime
+                                              )}
+                                          </TableCell>
 
-                                        <TableCell>
-                                            {formatTime(
-                                                attendance.exitTime
-                                            )}
-                                        </TableCell>
+                                          <TableCell>
+                                              {formatTime(
+                                                  attendance.exitTime
+                                              )}
+                                          </TableCell>
 
-                                        <TableCell>
-                                            {getDeviceName(
-                                                attendance.deviceId
-                                            )}
-                                        </TableCell>
+                                          <TableCell>
+                                              {getDeviceName(
+                                                  attendance.deviceId
+                                              )}
+                                          </TableCell>
 
-                                        <TableCell>
-                                            <Chip
-                                                label={
-                                                    attendance.status
-                                                }
-                                                size="small"
-                                                sx={{
-                                                    ...getStatusStyle(
-                                                        attendance.status
-                                                    ),
-                                                    fontWeight: 600,
-                                                }}
-                                            />
-                                        </TableCell>
+                                          <TableCell>
+                                              <Chip
+                                                  label={getStatusLabel(
+                                                      attendance.status
+                                                  )}
+                                                  size="small"
+                                                  sx={{
+                                                      ...getStatusStyle(
+                                                          attendance.status
+                                                      ),
+                                                      fontWeight: 600,
+                                                  }}
+                                              />
+                                          </TableCell>
 
-                                        <TableCell align="right">
-                                            <Tooltip title="Editar">
-                                                <IconButton
-                                                    aria-label={`Editar asistencia de ${getStudentName(attendance.studentId)}`}
-                                                    onClick={() =>
-                                                        handleOpenEdit(
-                                                            attendance
-                                                        )
-                                                    }
-                                                >
-                                                    <EditIcon />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </TableCell>
-                                    </TableRow>
-                                )
-                            )}
+                                          <TableCell align="right">
+                                              <Tooltip title="Editar">
+                                                  <IconButton
+                                                      aria-label={`Editar asistencia de ${getStudentName(
+    attendance.studentId
+)}`}
+                                                      onClick={() =>
+                                                          handleOpenEdit(
+                                                              attendance
+                                                          )
+                                                      }
+                                                  >
+                                                      <EditIcon />
+                                                  </IconButton>
+                                              </Tooltip>
+                                          </TableCell>
+                                      </TableRow>
+                                  )
+                              )}
                     </TableBody>
                 </Table>
             </TableContainer>
 
-            {!loading && attendances.length === 0 && (
-                <Paper
-                    elevation={0}
-                    sx={{
-                        mt: 3,
-                        py: 6,
-                        px: 3,
-                        textAlign: "center",
-                        border: "1px dashed #CCD9E6",
-                        borderRadius: 3,
-                        bgcolor: "rgba(255,255,255,0.65)",
-                    }}
-                >
-                    <FactCheckOutlinedIcon
+            {!loading &&
+                attendances.length === 0 && (
+                    <Paper
+                        elevation={0}
                         sx={{
-                            fontSize: 52,
-                            color: "#9AABBC",
-                            mb: 1.5,
+                            mt: 3,
+                            py: 6,
+                            px: 3,
+                            textAlign:
+                                "center",
+                            border:
+                                "1px dashed #CCD9E6",
+                            borderRadius: 3,
+                            bgcolor:
+                                "rgba(255,255,255,0.65)",
                         }}
-                    />
+                    >
+                        <FactCheckOutlinedIcon
+                            sx={{
+                                fontSize: 52,
+                                color:
+                                    "#9AABBC",
+                                mb: 1.5,
+                            }}
+                        />
 
-                    <Typography fontWeight={700} color="#0F2742">
-                        No hay asistencias para mostrar
-                    </Typography>
+                        <Typography
+                            fontWeight={700}
+                            color="#0F2742"
+                        >
+                            No hay asistencias
+                            para mostrar
+                        </Typography>
 
-                    <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                        Los registros de asistencia aparecerán en esta sección.
-                    </Typography>
-                </Paper>
-            )}
+                        <Typography
+                            color="text.secondary"
+                            sx={{ mt: 0.5 }}
+                        >
+                            Los registros de
+                            asistencia aparecerán
+                            en esta sección.
+                        </Typography>
+                    </Paper>
+                )}
 
             <Dialog
                 open={open}
@@ -895,12 +979,16 @@ function AttendancesPage() {
                                 Puntual
                             </MenuItem>
 
-                            <MenuItem value="tarde">
+                            <MenuItem value="tardanza">
                                 Tarde
                             </MenuItem>
 
                             <MenuItem value="ausente">
                                 Ausente
+                            </MenuItem>
+
+                            <MenuItem value="justificado">
+                                Justificado
                             </MenuItem>
                         </Select>
                     </FormControl>
@@ -954,9 +1042,9 @@ function AttendancesPage() {
                                 (previous) => ({
                                     ...previous,
                                     entryTime:
-                                    event
-                                        .target
-                                        .value,
+                                        event
+                                            .target
+                                            .value,
                                 })
                             )
                         }
@@ -978,9 +1066,9 @@ function AttendancesPage() {
                                 (previous) => ({
                                     ...previous,
                                     exitTime:
-                                    event
-                                        .target
-                                        .value,
+                                        event
+                                            .target
+                                            .value,
                                 })
                             )
                         }
@@ -1009,9 +1097,9 @@ function AttendancesPage() {
                                     (previous) => ({
                                         ...previous,
                                         status:
-                                        event
-                                            .target
-                                            .value,
+                                            event
+                                                .target
+                                                .value,
                                     })
                                 )
                             }
@@ -1020,12 +1108,16 @@ function AttendancesPage() {
                                 Puntual
                             </MenuItem>
 
-                            <MenuItem value="tarde">
+                            <MenuItem value="tardanza">
                                 Tarde
                             </MenuItem>
 
                             <MenuItem value="ausente">
                                 Ausente
+                            </MenuItem>
+
+                            <MenuItem value="justificado">
+                                Justificado
                             </MenuItem>
                         </Select>
                     </FormControl>
