@@ -543,20 +543,20 @@ function AttendancesPage() {
                                 )
                             }
                         >
-                            <MenuItem value="">
-                                Todos
-                            </MenuItem>
-
                             <MenuItem value="puntual">
                                 Puntual
                             </MenuItem>
 
-                            <MenuItem value="tarde">
-                                Tarde
+                            <MenuItem value="tardanza">
+                                Tardanza
                             </MenuItem>
 
                             <MenuItem value="ausente">
                                 Ausente
+                            </MenuItem>
+
+                            <MenuItem value="justificado">
+                                Justificado
                             </MenuItem>
                         </Select>
                     </FormControl>
